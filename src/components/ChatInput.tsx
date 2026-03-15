@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Plus, Send } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
-  onUploadReceipt: () => void;
+  onUploadReceipt: (file: File) => void;
+  isScanning?: boolean;
 }
 
-export function ChatInput({ onSendMessage, onUploadReceipt }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatInputProps) {
   const [text, setText] = useState('');
   const [showActions, setShowActions] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -17,13 +19,31 @@ export function ChatInput({ onSendMessage, onUploadReceipt }: ChatInputProps) {
     setText('');
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onUploadReceipt(file);
+      setShowActions(false);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div className="bg-card border-t-1.5 border-foreground px-3 py-2 safe-area-pb">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
       <div className="flex items-end gap-2">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowActions(!showActions)}
           className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shrink-0 mb-0.5"
+          disabled={isScanning}
         >
           <Plus className={`h-5 w-5 transition-transform ${showActions ? 'rotate-45' : ''}`} />
         </motion.button>
@@ -33,8 +53,9 @@ export function ChatInput({ onSendMessage, onUploadReceipt }: ChatInputProps) {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onUploadReceipt}
-            className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mb-0.5"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning}
+            className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mb-0.5 disabled:opacity-50"
           >
             <Camera className="h-5 w-5" />
           </motion.button>

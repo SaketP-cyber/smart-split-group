@@ -10,6 +10,8 @@ import { ReceiptCard } from '@/components/ReceiptCard';
 import { ScanningCard } from '@/components/ScanningCard';
 import { ChatInput } from '@/components/ChatInput';
 import { LedgerDrawer } from '@/components/LedgerDrawer';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const CURRENT_USER = 'me';
 
@@ -83,34 +85,61 @@ export default function GroupChat() {
     setMessages(prev => [...prev, msg]);
   };
 
-  const handleUploadReceipt = () => {
+  const handleUploadReceipt = async (file: File) => {
     setScanning(true);
-    // Simulate AI scanning
-    setTimeout(() => {
-      setScanning(false);
+
+    try {
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove the data:image/...;base64, prefix
+          resolve(result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('scan-receipt', {
+        body: { imageBase64: base64, mimeType: file.type },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const now = Date.now();
       const newReceipt: Receipt = {
-        id: `r-${Date.now()}`,
-        items: [
-          { id: `ni1`, name: 'Latte', price: 5.50, assignedTo: [] },
-          { id: `ni2`, name: 'Croissant', price: 4.25, assignedTo: [] },
-          { id: `ni3`, name: 'Avocado Toast', price: 13.00, assignedTo: [] },
-        ],
-        tax: 2.28,
-        tip: 4.00,
-        total: 29.03,
-        currency: '$',
+        id: `r-${now}`,
+        items: (data.items || []).map((item: { name: string; price: number }, i: number) => ({
+          id: `ni-${now}-${i}`,
+          name: item.name,
+          price: item.price,
+          assignedTo: [],
+        })),
+        tax: data.tax || 0,
+        tip: data.tip || 0,
+        total: data.total || 0,
+        currency: data.currency || '$',
         createdBy: CURRENT_USER,
         createdAt: new Date(),
       };
+
       const msg: ChatMessage = {
-        id: `msg-${Date.now()}`,
+        id: `msg-${now}`,
         type: 'receipt',
         receipt: newReceipt,
         senderId: CURRENT_USER,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, msg]);
-    }, 3000);
+      toast.success('Receipt scanned successfully!');
+    } catch (err) {
+      console.error('Receipt scan failed:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to scan receipt. Please try again.');
+    } finally {
+      setScanning(false);
+    }
   };
 
   const getMember = (id: string) => MOCK_MEMBERS.find(m => m.id === id) || MOCK_MEMBERS[0];
@@ -162,7 +191,7 @@ export default function GroupChat() {
         )}
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} onUploadReceipt={handleUploadReceipt} />
+      <ChatInput onSendMessage={handleSendMessage} onUploadReceipt={handleUploadReceipt} isScanning={scanning} />
 
       <LedgerDrawer
         isOpen={ledgerOpen}
