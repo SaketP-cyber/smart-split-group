@@ -14,7 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      groups: {
+        Row: {
+          created_at: string
+          id: string
+          members: Json
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          members?: Json
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          members?: Json
+          name?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          group_id: string
+          id: string
+          sender_id: string
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          sender_id: string
+          type: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          sender_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipts: {
+        Row: {
+          created_at: string
+          created_by: string
+          currency: string
+          group_id: string
+          id: string
+          items: Json
+          message_id: string
+          tax: number
+          tip: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          currency?: string
+          group_id: string
+          id?: string
+          items?: Json
+          message_id: string
+          tax?: number
+          tip?: number
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          currency?: string
+          group_id?: string
+          id?: string
+          items?: Json
+          message_id?: string
+          tax?: number
+          tip?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
