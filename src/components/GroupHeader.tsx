@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronLeft, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Member } from '@/lib/types';
 import { AvatarBubble } from './AvatarBubble';
 
