@@ -1,77 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Users, ChevronRight, Receipt, X } from 'lucide-react';
+import { Plus, Users, ChevronRight, Receipt, X, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Group {
+interface GroupRow {
   id: string;
   name: string;
   members: { initials: string; color: string }[];
-  lastActivity: string;
-  totalExpenses: number;
-  currency: string;
+  created_at: string;
 }
-
-const MOCK_GROUPS: Group[] = [
-  {
-    id: 'friday-dinner',
-    name: 'friday dinner',
-    members: [
-      { initials: 'YO', color: 'bg-blue-100 text-blue-700' },
-      { initials: 'AX', color: 'bg-orange-100 text-orange-700' },
-      { initials: 'SM', color: 'bg-pink-100 text-pink-700' },
-      { initials: 'JD', color: 'bg-purple-100 text-purple-700' },
-    ],
-    lastActivity: '15 min ago',
-    totalExpenses: 97.25,
-    currency: '$',
-  },
-  {
-    id: 'road-trip',
-    name: 'weekend road trip',
-    members: [
-      { initials: 'YO', color: 'bg-blue-100 text-blue-700' },
-      { initials: 'SM', color: 'bg-pink-100 text-pink-700' },
-    ],
-    lastActivity: '2 days ago',
-    totalExpenses: 234.50,
-    currency: '$',
-  },
-  {
-    id: 'roommates',
-    name: 'roommates',
-    members: [
-      { initials: 'YO', color: 'bg-blue-100 text-blue-700' },
-      { initials: 'AX', color: 'bg-orange-100 text-orange-700' },
-      { initials: 'KL', color: 'bg-teal-100 text-teal-700' },
-    ],
-    lastActivity: '1 week ago',
-    totalExpenses: 1420.00,
-    currency: '$',
-  },
-];
 
 export default function Groups() {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState<Group[]>(MOCK_GROUPS);
+  const [groups, setGroups] = useState<GroupRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
 
-  const handleCreateGroup = () => {
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const fetchGroups = async () => {
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setGroups(data.map(g => ({
+        ...g,
+        members: (g.members as any[]) || [],
+      })));
+    }
+    setLoading(false);
+  };
+
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
-    const newGroup: Group = {
-      id: `group-${Date.now()}`,
-      name: newGroupName.trim().toLowerCase(),
-      members: [{ initials: 'YO', color: 'bg-blue-100 text-blue-700' }],
-      lastActivity: 'just now',
-      totalExpenses: 0,
-      currency: '$',
-    };
-    setGroups(prev => [newGroup, ...prev]);
-    setNewGroupName('');
-    setShowCreate(false);
+    const defaultMembers = [{ initials: 'YO', color: 'bg-blue-100 text-blue-700' }];
+    const { data, error } = await supabase
+      .from('groups')
+      .insert({ name: newGroupName.trim().toLowerCase(), members: defaultMembers as any })
+      .select()
+      .single();
+    if (!error && data) {
+      setGroups(prev => [{ ...data, members: defaultMembers }, ...prev]);
+      setNewGroupName('');
+      setShowCreate(false);
+    }
   };
 
   return (
@@ -144,54 +123,49 @@ export default function Groups() {
 
       {/* Groups list */}
       <div className="flex-1 px-5 space-y-2.5 pb-8">
-        {groups.map((group, i) => (
-          <motion.button
-            key={group.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 * i, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate('/chat')}
-            className="w-full bg-card border-1.5 border-foreground rounded-2xl px-4 py-3.5 shadow-card-sm hover:shadow-card transition-shadow text-left"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Member avatars */}
-                  <div className="flex -space-x-1.5">
-                    {group.members.slice(0, 4).map((m, j) => (
-                      <div
-                        key={j}
-                        className={`h-6 w-6 rounded-full text-[9px] font-bold flex items-center justify-center border-1.5 border-card ${m.color}`}
-                      >
-                        {m.initials}
-                      </div>
-                    ))}
-                    {group.members.length > 4 && (
-                      <div className="h-6 w-6 rounded-full bg-muted text-[9px] font-medium text-muted-foreground flex items-center justify-center border-1.5 border-card">
-                        +{group.members.length - 4}
-                      </div>
-                    )}
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : groups.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            no groups yet — create one above!
+          </div>
+        ) : (
+          groups.map((group, i) => (
+            <motion.button
+              key={group.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 * i, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate(`/chat/${group.id}`)}
+              className="w-full bg-card border-1.5 border-foreground rounded-2xl px-4 py-3.5 shadow-card-sm hover:shadow-card transition-shadow text-left"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{group.lastActivity}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-3">
-                <div className="text-right">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Receipt className="h-3 w-3" />
-                    <span className="font-mono-data">{group.currency}{group.totalExpenses.toFixed(2)}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-1.5">
+                      {group.members.slice(0, 4).map((m, j) => (
+                        <div
+                          key={j}
+                          className={`h-6 w-6 rounded-full text-[9px] font-bold flex items-center justify-center border-1.5 border-card ${m.color}`}
+                        >
+                          {m.initials}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-3" />
               </div>
-            </div>
-          </motion.button>
-        ))}
+            </motion.button>
+          ))
+        )}
       </div>
     </div>
   );
