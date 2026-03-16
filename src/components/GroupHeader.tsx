@@ -17,7 +17,6 @@ export function GroupHeader({ groupName, members, onOpenLedger }: GroupHeaderPro
       <button className="p-1 -ml-1" onClick={() => navigate('/')}>
         <ChevronLeft className="h-5 w-5 text-foreground" />
       </button>
-      </button>
       <div className="flex-1 min-w-0">
         <h1 className="font-display text-base leading-tight truncate">{groupName}</h1>
         <div className="flex items-center gap-1 mt-0.5">
