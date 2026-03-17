@@ -13,8 +13,7 @@ import { ChatInput } from '@/components/ChatInput';
 import { LedgerDrawer } from '@/components/LedgerDrawer';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-
-const CURRENT_USER = 'me';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function GroupChat() {
   const { groupId } = useParams<{ groupId: string }>();
