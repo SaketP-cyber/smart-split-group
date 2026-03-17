@@ -46,6 +46,7 @@ const App = () => (
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
             <Route path="/chat/:groupId" element={<ProtectedRoute><GroupChat /></ProtectedRoute>} />
+            <Route path="/join/:token" element={<JoinGroup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
