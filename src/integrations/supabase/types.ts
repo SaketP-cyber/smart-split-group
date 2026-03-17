@@ -185,7 +185,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_group_with_member: {
+        Args: { _members: Json; _name: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
