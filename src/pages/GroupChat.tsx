@@ -16,6 +16,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function GroupChat() {
+  const { user } = useAuth();
+  const CURRENT_USER = user?.id || '';
   const { groupId } = useParams<{ groupId: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [groupName, setGroupName] = useState('');
