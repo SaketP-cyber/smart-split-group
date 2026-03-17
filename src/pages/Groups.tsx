@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Users, ChevronRight, Receipt, X, Loader2 } from 'lucide-react';
+import { Plus, Users, ChevronRight, X, Loader2, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface GroupRow {
   id: string;
@@ -15,6 +16,7 @@ interface GroupRow {
 
 export default function Groups() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -25,6 +27,7 @@ export default function Groups() {
   }, []);
 
   const fetchGroups = async () => {
+    // RLS ensures only groups user is a member of are returned
     const { data, error } = await supabase
       .from('groups')
       .select('*')
@@ -39,15 +42,31 @@ export default function Groups() {
   };
 
   const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) return;
-    const defaultMembers = [{ initials: 'YO', color: 'bg-blue-100 text-blue-700' }];
+    if (!newGroupName.trim() || !user) return;
+
+    // Get user profile for initials/color
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('initials, color')
+      .eq('id', user.id)
+      .single();
+
+    const memberInfo = profile || { initials: 'ME', color: 'bg-blue-100 text-blue-700' };
+
     const { data, error } = await supabase
       .from('groups')
-      .insert({ name: newGroupName.trim().toLowerCase(), members: defaultMembers as any })
+      .insert({ name: newGroupName.trim().toLowerCase(), members: [memberInfo] as any })
       .select()
       .single();
+
     if (!error && data) {
-      setGroups(prev => [{ ...data, members: defaultMembers }, ...prev]);
+      // Add creator as group member
+      await supabase.from('group_members').insert({
+        group_id: data.id,
+        user_id: user.id,
+      });
+
+      setGroups(prev => [{ ...data, members: [memberInfo] }, ...prev]);
       setNewGroupName('');
       setShowCreate(false);
     }
@@ -62,7 +81,12 @@ export default function Groups() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-1">smart split</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">smart split</p>
+            <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors">
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
           <h1 className="font-display text-3xl text-foreground">your groups</h1>
         </motion.div>
       </div>
