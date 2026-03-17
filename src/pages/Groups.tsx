@@ -54,19 +54,18 @@ export default function Groups() {
     const memberInfo = profile || { initials: 'ME', color: 'bg-blue-100 text-blue-700' };
 
     const { data, error } = await supabase
-      .from('groups')
-      .insert({ name: newGroupName.trim().toLowerCase(), members: [memberInfo] as any })
-      .select()
-      .single();
-
-    if (!error && data) {
-      // Add creator as group member
-      await supabase.from('group_members').insert({
-        group_id: data.id,
-        user_id: user.id,
+      .rpc('create_group_with_member', {
+        _name: newGroupName.trim().toLowerCase(),
+        _members: [memberInfo],
       });
 
-      setGroups(prev => [{ ...data, members: [memberInfo] }, ...prev]);
+    if (!error && data) {
+      setGroups(prev => [{
+        id: data as string,
+        name: newGroupName.trim().toLowerCase(),
+        members: [memberInfo],
+        created_at: new Date().toISOString(),
+      }, ...prev]);
       setNewGroupName('');
       setShowCreate(false);
     }
