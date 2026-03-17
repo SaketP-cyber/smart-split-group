@@ -31,7 +31,14 @@ function AuthRoute() {
       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    const pendingInvite = sessionStorage.getItem('pending_invite');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pending_invite');
+      return <Navigate to={`/join/${pendingInvite}`} replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
   return <Auth />;
 }
 
