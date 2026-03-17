@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Auth from "./pages/Auth";
 import Groups from "./pages/Groups";
 import GroupChat from "./pages/GroupChat";
+import JoinGroup from "./pages/JoinGroup";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -30,7 +31,14 @@ function AuthRoute() {
       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    const pendingInvite = sessionStorage.getItem('pending_invite');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pending_invite');
+      return <Navigate to={`/join/${pendingInvite}`} replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
   return <Auth />;
 }
 
@@ -45,6 +53,7 @@ const App = () => (
             <Route path="/auth" element={<AuthRoute />} />
             <Route path="/" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
             <Route path="/chat/:groupId" element={<ProtectedRoute><GroupChat /></ProtectedRoute>} />
+            <Route path="/join/:token" element={<JoinGroup />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

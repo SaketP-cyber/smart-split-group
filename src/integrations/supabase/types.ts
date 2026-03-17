@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          group_id: string
+          id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          group_id: string
+          id?: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          group_id?: string
+          id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -189,6 +221,7 @@ export type Database = {
         Args: { _members: Json; _name: string }
         Returns: string
       }
+      join_group_via_invite: { Args: { _token: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
