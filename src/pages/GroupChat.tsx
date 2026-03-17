@@ -252,6 +252,7 @@ export default function GroupChat() {
     <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10">
       <GroupHeader
         groupName={groupName || 'loading...'}
+        groupId={groupId || ''}
         members={MOCK_MEMBERS}
         onOpenLedger={() => setLedgerOpen(true)}
       />

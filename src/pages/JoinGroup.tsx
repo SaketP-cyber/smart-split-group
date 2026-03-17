@@ -60,7 +60,7 @@ export default function JoinGroup() {
         )}
         {status === 'success' && (
           <>
-            <CheckCircle2 className="h-10 w-10 text-green-600 mx-auto" />
+            <CheckCircle2 className="h-10 w-10 text-primary mx-auto" />
             <p className="text-sm font-medium text-foreground">you're in! redirecting...</p>
           </>
         )}
