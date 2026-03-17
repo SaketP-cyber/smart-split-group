@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
           created_at: string
@@ -69,6 +98,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          color: string
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          initials: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          initials?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          initials?: string
+        }
+        Relationships: []
       }
       receipts: {
         Row: {
