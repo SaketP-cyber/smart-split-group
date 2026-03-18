@@ -11,9 +11,10 @@ interface ReceiptCardProps {
   currentUserId: string;
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
+  onChangePayer?: (receiptId: string, payerId: string) => void;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer }: ReceiptCardProps) {
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
@@ -126,8 +127,30 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         </button>
       )}
 
-      {/* Divider */}
+      {/* Paid by */}
       <div className="border-t border-foreground/10 my-3" />
+      <div className="flex items-center gap-2 px-2 mb-2">
+        <span className="text-xs text-muted-foreground">paid by</span>
+        <div className="flex gap-1">
+          {members.map((m) => {
+            const isPayer = receipt.createdBy === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => onChangePayer?.(receipt.id, m.id)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all border-1.5 ${
+                  isPayer
+                    ? 'bg-primary/15 border-primary/40 text-primary font-medium'
+                    : 'bg-muted/50 border-transparent text-muted-foreground hover:border-foreground/20'
+                }`}
+              >
+                <AvatarBubble member={m} size="sm" isActive={isPayer} />
+                <span className="max-w-[60px] truncate">{m.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Tax & Tip */}
       <div className="space-y-1 px-2">

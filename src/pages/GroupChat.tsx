@@ -251,6 +251,14 @@ export default function GroupChat() {
     }));
   };
 
+  const handleChangePayer = async (receiptId: string, payerId: string) => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
+      supabase.from('receipts').update({ created_by: payerId }).eq('id', receiptId).then();
+      return { ...msg, receipt: { ...msg.receipt, createdBy: payerId } };
+    }));
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!groupId) return;
     const { data, error } = await supabase
@@ -395,6 +403,7 @@ export default function GroupChat() {
                     currentUserId={CURRENT_USER}
                     onToggleAssignment={(itemId, memberId) => handleToggleAssignment(msg.receipt!.id, itemId, memberId)}
                     onAddItem={handleAddItem}
+                    onChangePayer={handleChangePayer}
                   />
                 </div>
               );
