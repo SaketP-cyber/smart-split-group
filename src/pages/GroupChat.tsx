@@ -29,7 +29,66 @@ export default function GroupChat() {
   useEffect(() => {
     if (!groupId) return;
     loadGroupData();
-  }, [groupId]);
+
+    // Subscribe to realtime messages
+    const channel = supabase
+      .channel(`group-messages-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          const m = payload.new as any;
+          // Skip if sent by current user (already added optimistically)
+          if (m.sender_id === CURRENT_USER) return;
+
+          let receipt: Receipt | undefined;
+          if (m.type === 'receipt') {
+            const { data: r } = await supabase
+              .from('receipts')
+              .select('*')
+              .eq('message_id', m.id)
+              .single();
+            if (r) {
+              receipt = {
+                id: r.id,
+                items: (r.items as any[]).map((item: any, i: number) => ({
+                  id: item.id || `ri-${i}`,
+                  name: item.name,
+                  price: item.price,
+                  assignedTo: item.assignedTo || [],
+                })),
+                tax: Number(r.tax),
+                tip: Number(r.tip),
+                total: Number(r.total),
+                currency: r.currency,
+                createdBy: r.created_by,
+                createdAt: new Date(r.created_at),
+              };
+            }
+          }
+
+          const msg: ChatMessage = {
+            id: m.id,
+            type: m.type as 'text' | 'receipt' | 'system',
+            content: m.content || undefined,
+            receipt,
+            senderId: m.sender_id,
+            timestamp: new Date(m.created_at),
+          };
+          setMessages(prev => [...prev, msg]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, CURRENT_USER]);
 
   const loadGroupData = async () => {
     setLoading(true);
