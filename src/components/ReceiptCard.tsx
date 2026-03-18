@@ -11,6 +11,7 @@ interface ReceiptCardProps {
   currentUserId: string;
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
+  onChangePayer?: (receiptId: string, payerId: string) => void;
 }
 
 export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem }: ReceiptCardProps) {
