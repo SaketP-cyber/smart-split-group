@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Receipt as ReceiptIcon, Plus } from 'lucide-react';
+import { Receipt as ReceiptIcon, Plus, Check, X } from 'lucide-react';
 import { Receipt, Member } from '@/lib/types';
 import { AvatarBubble } from './AvatarBubble';
 import { calculateAllTotals } from '@/lib/split-calculator';
@@ -10,15 +10,26 @@ interface ReceiptCardProps {
   members: Member[];
   currentUserId: string;
   onToggleAssignment: (itemId: string, memberId: string) => void;
+  onAddItem?: (receiptId: string, name: string, price: number) => void;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem }: ReceiptCardProps) {
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
   const [addingItem, setAddingItem] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
+
+  const handleConfirmAdd = () => {
+    const name = newItemName.trim();
+    const price = parseFloat(newItemPrice);
+    if (!name || isNaN(price) || price <= 0) return;
+    onAddItem?.(receipt.id, name, price);
+    setNewItemName('');
+    setNewItemPrice('');
+    setAddingItem(false);
+  };
 
   return (
     <motion.div
@@ -74,13 +85,14 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
-          className="flex gap-2 mt-2 px-2"
+          className="flex items-center gap-2 mt-2 px-2"
         >
           <input
             className="flex-1 text-sm bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
             placeholder="item name"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleConfirmAdd()}
             autoFocus
           />
           <input
@@ -88,9 +100,22 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
             placeholder="0.00"
             value={newItemPrice}
             onChange={(e) => setNewItemPrice(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleConfirmAdd()}
             type="number"
             step="0.01"
           />
+          <button
+            onClick={handleConfirmAdd}
+            className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0"
+          >
+            <Check className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => { setAddingItem(false); setNewItemName(''); setNewItemPrice(''); }}
+            className="h-7 w-7 rounded-full bg-muted flex items-center justify-center shrink-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
         </motion.div>
       ) : (
         <button
