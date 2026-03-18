@@ -34,7 +34,6 @@ export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatIn
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={handleFileChange}
       />

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { MOCK_MEMBERS } from '@/lib/mock-data';
-import { ChatMessage, Receipt, ReceiptItem } from '@/lib/types';
+import { ChatMessage, Member, Receipt, ReceiptItem } from '@/lib/types';
 import { calculatePersonTotal, simplifyDebts } from '@/lib/split-calculator';
 import { GroupHeader } from '@/components/GroupHeader';
 import { BalanceBar } from '@/components/BalanceBar';
@@ -21,12 +20,12 @@ export default function GroupChat() {
   const { groupId } = useParams<{ groupId: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [groupName, setGroupName] = useState('');
+  const [members, setMembers] = useState<Member[]>([]);
   const [ledgerOpen, setLedgerOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
 
-  // Load group info and messages from DB
   useEffect(() => {
     if (!groupId) return;
     loadGroupData();
@@ -34,13 +33,45 @@ export default function GroupChat() {
 
   const loadGroupData = async () => {
     setLoading(true);
-    // Fetch group name
+
+    // Fetch group name + members JSON
     const { data: group } = await supabase
       .from('groups')
-      .select('name')
+      .select('name, members')
       .eq('id', groupId!)
       .single();
-    if (group) setGroupName(group.name);
+    if (group) {
+      setGroupName(group.name);
+      // members is a JSONB array of { id, name, initials, color }
+      const membersList = (group.members as any[]) || [];
+      // Also fetch profiles for all group_members to ensure we have real data
+      const { data: gmRows } = await supabase
+        .from('group_members')
+        .select('user_id')
+        .eq('group_id', groupId!);
+      
+      if (gmRows && gmRows.length > 0) {
+        const userIds = gmRows.map(gm => gm.user_id);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, initials, color')
+          .in('id', userIds);
+        
+        if (profiles) {
+          const realMembers: Member[] = profiles.map(p => ({
+            id: p.id,
+            name: p.display_name || p.initials,
+            initials: p.initials,
+            color: p.color,
+          }));
+          setMembers(realMembers);
+        } else {
+          setMembers(membersList);
+        }
+      } else {
+        setMembers(membersList);
+      }
+    }
 
     // Fetch messages
     const { data: msgRows } = await supabase
@@ -111,9 +142,9 @@ export default function GroupChat() {
 
   // Calculate debts
   const balances: Record<string, number> = {};
-  for (const m of MOCK_MEMBERS) balances[m.id] = 0;
+  for (const m of members) balances[m.id] = 0;
   for (const r of allReceipts) {
-    for (const m of MOCK_MEMBERS) {
+    for (const m of members) {
       const t = calculatePersonTotal(r, m.id);
       if (r.createdBy === m.id) {
         balances[m.id] += r.total - t;
@@ -125,7 +156,6 @@ export default function GroupChat() {
   const debts = simplifyDebts(balances);
 
   const handleToggleAssignment = async (receiptId: string, itemId: string, memberId: string) => {
-    // Update locally
     setMessages(prev => prev.map(msg => {
       if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
       const updatedItems: ReceiptItem[] = msg.receipt.items.map(item => {
@@ -138,10 +168,27 @@ export default function GroupChat() {
             : [...item.assignedTo, memberId],
         };
       });
-      // Also update in DB
       const newItems = updatedItems.map(i => ({ id: i.id, name: i.name, price: i.price, assignedTo: i.assignedTo }));
       supabase.from('receipts').update({ items: newItems as any }).eq('id', receiptId).then();
       return { ...msg, receipt: { ...msg.receipt, items: updatedItems } };
+    }));
+  };
+
+  const handleAddItem = async (receiptId: string, name: string, price: number) => {
+    const newItem: ReceiptItem = {
+      id: `ni-${Date.now()}`,
+      name,
+      price,
+      assignedTo: [CURRENT_USER], // auto-assign to current user
+    };
+
+    setMessages(prev => prev.map(msg => {
+      if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
+      const updatedItems = [...msg.receipt.items, newItem];
+      const newTotal = updatedItems.reduce((s, i) => s + i.price, 0) + msg.receipt.tax + msg.receipt.tip;
+      const itemsJson = updatedItems.map(i => ({ id: i.id, name: i.name, price: i.price, assignedTo: i.assignedTo }));
+      supabase.from('receipts').update({ items: itemsJson as any, total: newTotal }).eq('id', receiptId).then();
+      return { ...msg, receipt: { ...msg.receipt, items: updatedItems, total: newTotal } };
     }));
   };
 
@@ -186,7 +233,6 @@ export default function GroupChat() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      // Insert message first
       const { data: msgRow, error: msgError } = await supabase
         .from('messages')
         .insert({ group_id: groupId, type: 'receipt', sender_id: CURRENT_USER })
@@ -201,7 +247,6 @@ export default function GroupChat() {
         assignedTo: [],
       }));
 
-      // Insert receipt linked to message
       const { data: receiptRow, error: rError } = await supabase
         .from('receipts')
         .insert({
@@ -246,14 +291,14 @@ export default function GroupChat() {
     }
   };
 
-  const getMember = (id: string) => MOCK_MEMBERS.find(m => m.id === id) || MOCK_MEMBERS[0];
+  const getMember = (id: string) => members.find(m => m.id === id) || { id, name: '??', initials: '??', color: 'bg-muted text-muted-foreground border-muted' };
 
   return (
     <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10">
       <GroupHeader
         groupName={groupName || 'loading...'}
         groupId={groupId || ''}
-        members={MOCK_MEMBERS}
+        members={members}
         onOpenLedger={() => setLedgerOpen(true)}
       />
       <BalanceBar balance={netBalance} currency="$" />
@@ -287,9 +332,10 @@ export default function GroupChat() {
                 <div key={msg.id} className={`flex ${msg.senderId === CURRENT_USER ? 'justify-end' : 'justify-start'}`}>
                   <ReceiptCard
                     receipt={msg.receipt}
-                    members={MOCK_MEMBERS}
+                    members={members}
                     currentUserId={CURRENT_USER}
                     onToggleAssignment={(itemId, memberId) => handleToggleAssignment(msg.receipt!.id, itemId, memberId)}
+                    onAddItem={handleAddItem}
                   />
                 </div>
               );
@@ -310,7 +356,7 @@ export default function GroupChat() {
         isOpen={ledgerOpen}
         onClose={() => setLedgerOpen(false)}
         debts={debts}
-        members={MOCK_MEMBERS}
+        members={members}
         currency="$"
       />
     </div>
