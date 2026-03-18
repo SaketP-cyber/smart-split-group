@@ -14,7 +14,7 @@ interface ReceiptCardProps {
   onChangePayer?: (receiptId: string, payerId: string) => void;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer }: ReceiptCardProps) {
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
