@@ -9,9 +9,10 @@ interface LedgerDrawerProps {
   debts: Debt[];
   members: Member[];
   currency: string;
+  onSettleUp?: (fromId: string, toId: string, amount: number) => void;
 }
 
-export function LedgerDrawer({ isOpen, onClose, debts, members, currency }: LedgerDrawerProps) {
+export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSettleUp }: LedgerDrawerProps) {
   const getMember = (id: string) => members.find(m => m.id === id)!;
 
   return (
