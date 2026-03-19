@@ -1,11 +1,19 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Lock, Loader2, Eye, EyeOff, Receipt, Users, Zap, Camera } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
+
+const taglines = [
+  { text: "stop doing math after dinner", icon: Receipt },
+  { text: "snap. split. done.", icon: Camera },
+  { text: "your friends owe you ₹427", icon: Zap },
+  { text: "no more awkward money talks", icon: Users },
+  { text: "AI reads receipts so you don't", icon: Receipt },
+];
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,6 +22,14 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [taglineIndex, setTaglineIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTaglineIndex((prev) => (prev + 1) % taglines.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,24 +69,72 @@ export default function Auth() {
     }
   };
 
+  const currentTagline = taglines[taglineIndex];
+
   return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-5">
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-background px-5 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="w-full max-w-sm space-y-6"
+        className="w-full max-w-sm space-y-5"
       >
-        {/* Header */}
-        <div className="text-center space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">smart split</p>
-          <h1 className="font-display text-3xl text-foreground">
-            {isSignUp ? 'create account' : 'welcome back'}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isSignUp ? 'sign up to start splitting bills' : 'sign in to your account'}
-          </p>
+        {/* Animated hero section */}
+        <div className="text-center space-y-3">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 border-1.5 border-primary/30 mx-auto"
+          >
+            <Receipt className="h-7 w-7 text-primary" />
+          </motion.div>
+
+          <div>
+            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] mb-1">smart split</p>
+            <h1 className="font-display text-3xl text-foreground">
+              {isSignUp ? 'join the crew' : 'welcome back'}
+            </h1>
+          </div>
+
+          {/* Rotating taglines */}
+          <div className="h-8 relative flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={taglineIndex}
+                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                className="absolute flex items-center gap-1.5"
+              >
+                <currentTagline.icon className="h-3.5 w-3.5 text-primary" />
+                <span className="text-sm text-muted-foreground font-medium">{currentTagline.text}</span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
+
+        {/* Floating social proof pill */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          className="flex items-center justify-center gap-2"
+        >
+          <div className="flex -space-x-2">
+            {['bg-primary', 'bg-destructive', 'bg-ring', 'bg-muted-foreground'].map((color, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0, x: -10 }}
+                animate={{ scale: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.08, type: 'spring', stiffness: 300 }}
+                className={`h-6 w-6 rounded-full ${color} border-2 border-background`}
+              />
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground">splitting bills together</span>
+        </motion.div>
 
         {/* Google button */}
         <Button
