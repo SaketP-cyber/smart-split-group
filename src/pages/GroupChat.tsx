@@ -179,6 +179,10 @@ export default function GroupChat() {
       timestamp: new Date(m.created_at),
     }));
 
+    setMessages(chatMessages);
+    setLoading(false);
+  };
+
   // Fetch today's scan count
   useEffect(() => {
     if (!CURRENT_USER) return;
@@ -193,7 +197,6 @@ export default function GroupChat() {
   }, [CURRENT_USER, messages]);
 
   const scanLimitReached = todayScanCount >= DAILY_SCAN_LIMIT;
-  };
 
   useEffect(() => {
     if (feedRef.current) {
