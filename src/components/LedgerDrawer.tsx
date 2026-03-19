@@ -77,12 +77,8 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
                       </motion.div>
                     );
                   })}
-                </div>
+              </div>
               )}
-
-              <button className="w-full mt-4 bg-foreground text-background rounded-xl py-3 font-display text-sm active:scale-[0.98] transition-transform">
-                settle up
-              </button>
             </div>
           </motion.div>
         </>
