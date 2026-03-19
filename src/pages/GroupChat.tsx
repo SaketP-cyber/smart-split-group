@@ -204,21 +204,23 @@ export default function GroupChat() {
     }
   }, [messages, scanning]);
 
+  // Fetch settlements for this group
+  const [settlements, setSettlements] = useState<{ from_user: string; to_user: string; amount: number }[]>([]);
+  useEffect(() => {
+    if (!groupId) return;
+    supabase
+      .from('settlements')
+      .select('from_user, to_user, amount')
+      .eq('group_id', groupId)
+      .then(({ data }) => setSettlements((data as any) || []));
+  }, [groupId, messages]);
+
   // Get all receipts from messages
   const allReceipts = messages
     .filter((m): m is ChatMessage & { receipt: Receipt } => m.type === 'receipt' && !!m.receipt)
     .map(m => m.receipt);
 
-  // Calculate net balance for current user
-  const netBalance = allReceipts.reduce((sum, r) => {
-    const myTotal = calculatePersonTotal(r, CURRENT_USER);
-    if (r.createdBy === CURRENT_USER) {
-      return sum + (r.total - myTotal);
-    }
-    return sum - myTotal;
-  }, 0);
-
-  // Calculate debts
+  // Calculate debts (factoring in settlements)
   const balances: Record<string, number> = {};
   for (const m of members) balances[m.id] = 0;
   for (const r of allReceipts) {
@@ -231,7 +233,15 @@ export default function GroupChat() {
       }
     }
   }
+  // Apply settlements
+  for (const s of settlements) {
+    if (balances[s.from_user] !== undefined) balances[s.from_user] += s.amount;
+    if (balances[s.to_user] !== undefined) balances[s.to_user] -= s.amount;
+  }
   const debts = simplifyDebts(balances);
+
+  // Net balance for current user
+  const netBalance = balances[CURRENT_USER] || 0;
 
   const handleToggleAssignment = async (receiptId: string, itemId: string, memberId: string) => {
     setMessages(prev => prev.map(msg => {
