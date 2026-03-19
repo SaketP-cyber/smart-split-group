@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Plus, Send } from 'lucide-react';
+import { Camera, Plus, Send, FileText } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
   onUploadReceipt: (file: File) => void;
+  onManualBill: () => void;
   isScanning?: boolean;
+  scanLimitReached?: boolean;
 }
 
 export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatInputProps) {
