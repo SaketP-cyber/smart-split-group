@@ -10,6 +10,7 @@ import { ReceiptCard } from '@/components/ReceiptCard';
 import { ScanningCard } from '@/components/ScanningCard';
 import { ChatInput } from '@/components/ChatInput';
 import { LedgerDrawer } from '@/components/LedgerDrawer';
+import { ManualBillDialog } from '@/components/ManualBillDialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
