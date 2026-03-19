@@ -9,9 +9,10 @@ interface LedgerDrawerProps {
   debts: Debt[];
   members: Member[];
   currency: string;
+  onSettleUp?: (fromId: string, toId: string, amount: number) => void;
 }
 
-export function LedgerDrawer({ isOpen, onClose, debts, members, currency }: LedgerDrawerProps) {
+export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSettleUp }: LedgerDrawerProps) {
   const getMember = (id: string) => members.find(m => m.id === id)!;
 
   return (
@@ -67,15 +68,17 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency }: Ledg
                         <span className="font-display text-negative">
                           {currency}{debt.amount.toFixed(2)}
                         </span>
+                        <button
+                          onClick={() => onSettleUp?.(debt.from, debt.to, debt.amount)}
+                          className="ml-1 px-2 py-1 text-xs bg-primary/10 text-primary rounded-lg font-display hover:bg-primary/20 transition-colors active:scale-95"
+                        >
+                          settle
+                        </button>
                       </motion.div>
                     );
                   })}
-                </div>
+              </div>
               )}
-
-              <button className="w-full mt-4 bg-foreground text-background rounded-xl py-3 font-display text-sm active:scale-[0.98] transition-transform">
-                settle up
-              </button>
             </div>
           </motion.div>
         </>

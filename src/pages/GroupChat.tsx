@@ -10,6 +10,7 @@ import { ReceiptCard } from '@/components/ReceiptCard';
 import { ScanningCard } from '@/components/ScanningCard';
 import { ChatInput } from '@/components/ChatInput';
 import { LedgerDrawer } from '@/components/LedgerDrawer';
+import { ManualBillDialog } from '@/components/ManualBillDialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,9 @@ export default function GroupChat() {
   const [ledgerOpen, setLedgerOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [manualBillOpen, setManualBillOpen] = useState(false);
+  const [todayScanCount, setTodayScanCount] = useState(0);
+  const DAILY_SCAN_LIMIT = 2;
   const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -179,27 +183,44 @@ export default function GroupChat() {
     setLoading(false);
   };
 
+  // Fetch today's scan count
+  useEffect(() => {
+    if (!CURRENT_USER) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    supabase
+      .from('receipts')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', CURRENT_USER)
+      .gte('created_at', today.toISOString())
+      .then(({ count }) => setTodayScanCount(count || 0));
+  }, [CURRENT_USER, messages]);
+
+  const scanLimitReached = todayScanCount >= DAILY_SCAN_LIMIT;
+
   useEffect(() => {
     if (feedRef.current) {
       feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }
   }, [messages, scanning]);
 
+  // Fetch settlements for this group
+  const [settlements, setSettlements] = useState<{ from_user: string; to_user: string; amount: number }[]>([]);
+  useEffect(() => {
+    if (!groupId) return;
+    supabase
+      .from('settlements')
+      .select('from_user, to_user, amount')
+      .eq('group_id', groupId)
+      .then(({ data }) => setSettlements((data as any) || []));
+  }, [groupId, messages]);
+
   // Get all receipts from messages
   const allReceipts = messages
     .filter((m): m is ChatMessage & { receipt: Receipt } => m.type === 'receipt' && !!m.receipt)
     .map(m => m.receipt);
 
-  // Calculate net balance for current user
-  const netBalance = allReceipts.reduce((sum, r) => {
-    const myTotal = calculatePersonTotal(r, CURRENT_USER);
-    if (r.createdBy === CURRENT_USER) {
-      return sum + (r.total - myTotal);
-    }
-    return sum - myTotal;
-  }, 0);
-
-  // Calculate debts
+  // Calculate debts (factoring in settlements)
   const balances: Record<string, number> = {};
   for (const m of members) balances[m.id] = 0;
   for (const r of allReceipts) {
@@ -212,7 +233,15 @@ export default function GroupChat() {
       }
     }
   }
+  // Apply settlements
+  for (const s of settlements) {
+    if (balances[s.from_user] !== undefined) balances[s.from_user] += s.amount;
+    if (balances[s.to_user] !== undefined) balances[s.to_user] -= s.amount;
+  }
   const debts = simplifyDebts(balances);
+
+  // Net balance for current user
+  const netBalance = balances[CURRENT_USER] || 0;
 
   const handleToggleAssignment = async (receiptId: string, itemId: string, memberId: string) => {
     setMessages(prev => prev.map(msg => {
@@ -283,6 +312,12 @@ export default function GroupChat() {
     setScanning(true);
 
     try {
+      if (scanLimitReached) {
+        toast.error(`Daily AI scan limit reached (${DAILY_SCAN_LIMIT}/day). Use manual bill entry instead.`);
+        setManualBillOpen(true);
+        return;
+      }
+
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -360,6 +395,106 @@ export default function GroupChat() {
 
   const getMember = (id: string) => members.find(m => m.id === id) || { id, name: '??', initials: '??', color: 'bg-muted text-muted-foreground border-muted' };
 
+  const handleManualBill = async (items: { name: string; price: number }[], tax: number, tip: number, payerId: string) => {
+    if (!groupId) return;
+    try {
+      const { data: msgRow, error: msgError } = await supabase
+        .from('messages')
+        .insert({ group_id: groupId, type: 'receipt', sender_id: CURRENT_USER })
+        .select()
+        .single();
+      if (msgError) throw msgError;
+
+      const receiptItems = items.map((item, i) => ({
+        id: `mi-${Date.now()}-${i}`,
+        name: item.name,
+        price: item.price,
+        assignedTo: [],
+      }));
+      const total = items.reduce((s, i) => s + i.price, 0) + tax + tip;
+
+      const { data: receiptRow, error: rError } = await supabase
+        .from('receipts')
+        .insert({
+          message_id: msgRow.id,
+          group_id: groupId,
+          items: receiptItems as any,
+          tax,
+          tip,
+          total,
+          currency: '$',
+          created_by: payerId,
+        })
+        .select()
+        .single();
+      if (rError) throw rError;
+
+      const newReceipt: Receipt = {
+        id: receiptRow.id,
+        items: receiptItems,
+        tax,
+        tip,
+        total,
+        currency: '$',
+        createdBy: payerId,
+        createdAt: new Date(receiptRow.created_at),
+      };
+
+      const msg: ChatMessage = {
+        id: msgRow.id,
+        type: 'receipt',
+        receipt: newReceipt,
+        senderId: CURRENT_USER,
+        timestamp: new Date(msgRow.created_at),
+      };
+      setMessages(prev => [...prev, msg]);
+      toast.success('Bill added!');
+    } catch (err) {
+      console.error('Manual bill failed:', err);
+      toast.error('Failed to add bill.');
+    }
+  };
+
+  const handleSettleUp = async (fromId: string, toId: string, amount: number) => {
+    if (!groupId) return;
+    try {
+      await supabase.from('settlements').insert({
+        group_id: groupId,
+        from_user: fromId,
+        to_user: toId,
+        amount,
+      } as any);
+
+      // Add system message
+      const fromMember = getMember(fromId);
+      const toMember = getMember(toId);
+      const { data: msgRow } = await supabase
+        .from('messages')
+        .insert({
+          group_id: groupId,
+          type: 'system',
+          content: `${fromMember.name} paid ${toMember.name} $${amount.toFixed(2)}`,
+          sender_id: CURRENT_USER,
+        })
+        .select()
+        .single();
+
+      if (msgRow) {
+        setMessages(prev => [...prev, {
+          id: msgRow.id,
+          type: 'system',
+          content: msgRow.content || '',
+          senderId: CURRENT_USER,
+          timestamp: new Date(msgRow.created_at),
+        }]);
+      }
+      toast.success('Settled up!');
+    } catch (err) {
+      console.error('Settle up failed:', err);
+      toast.error('Failed to settle up.');
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10">
       <GroupHeader
@@ -418,7 +553,21 @@ export default function GroupChat() {
         )}
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} onUploadReceipt={handleUploadReceipt} isScanning={scanning} />
+      <ChatInput
+        onSendMessage={handleSendMessage}
+        onUploadReceipt={handleUploadReceipt}
+        onManualBill={() => setManualBillOpen(true)}
+        isScanning={scanning}
+        scanLimitReached={scanLimitReached}
+      />
+
+      <ManualBillDialog
+        isOpen={manualBillOpen}
+        onClose={() => setManualBillOpen(false)}
+        members={members}
+        currentUserId={CURRENT_USER}
+        onSubmit={handleManualBill}
+      />
 
       <LedgerDrawer
         isOpen={ledgerOpen}
@@ -426,6 +575,7 @@ export default function GroupChat() {
         debts={debts}
         members={members}
         currency="$"
+        onSettleUp={handleSettleUp}
       />
     </div>
   );

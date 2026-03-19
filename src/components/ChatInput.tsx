@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Plus, Send } from 'lucide-react';
+import { Camera, Plus, Send, FileText } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (text: string) => void;
   onUploadReceipt: (file: File) => void;
+  onManualBill: () => void;
   isScanning?: boolean;
+  scanLimitReached?: boolean;
 }
 
-export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onUploadReceipt, onManualBill, isScanning, scanLimitReached }: ChatInputProps) {
   const [text, setText] = useState('');
   const [showActions, setShowActions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,16 +50,32 @@ export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatIn
         </motion.button>
 
         {showActions && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isScanning}
-            className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mb-0.5 disabled:opacity-50"
-          >
-            <Camera className="h-5 w-5" />
-          </motion.button>
+          <>
+            {!scanLimitReached && (
+              <motion.button
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { fileInputRef.current?.click(); setShowActions(false); }}
+                disabled={isScanning}
+                className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mb-0.5 disabled:opacity-50"
+                title="Scan receipt (AI)"
+              >
+                <Camera className="h-5 w-5" />
+              </motion.button>
+            )}
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { onManualBill(); setShowActions(false); }}
+              className="h-9 w-9 rounded-full bg-accent/10 text-accent-foreground flex items-center justify-center shrink-0 mb-0.5"
+              title="Add bill manually"
+            >
+              <FileText className="h-5 w-5" />
+            </motion.button>
+          </>
         )}
 
         <div className="flex-1 bg-muted rounded-2xl border-1.5 border-foreground/10 px-3 py-2 flex items-end">
