@@ -25,6 +25,9 @@ export default function GroupChat() {
   const [ledgerOpen, setLedgerOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [manualBillOpen, setManualBillOpen] = useState(false);
+  const [todayScanCount, setTodayScanCount] = useState(0);
+  const DAILY_SCAN_LIMIT = 2;
   const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
