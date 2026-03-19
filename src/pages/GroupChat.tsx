@@ -543,7 +543,21 @@ export default function GroupChat() {
         )}
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} onUploadReceipt={handleUploadReceipt} isScanning={scanning} />
+      <ChatInput
+        onSendMessage={handleSendMessage}
+        onUploadReceipt={handleUploadReceipt}
+        onManualBill={() => setManualBillOpen(true)}
+        isScanning={scanning}
+        scanLimitReached={scanLimitReached}
+      />
+
+      <ManualBillDialog
+        isOpen={manualBillOpen}
+        onClose={() => setManualBillOpen(false)}
+        members={members}
+        currentUserId={CURRENT_USER}
+        onSubmit={handleManualBill}
+      />
 
       <LedgerDrawer
         isOpen={ledgerOpen}
@@ -551,6 +565,7 @@ export default function GroupChat() {
         debts={debts}
         members={members}
         currency="$"
+        onSettleUp={handleSettleUp}
       />
     </div>
   );
