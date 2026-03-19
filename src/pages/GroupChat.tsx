@@ -179,8 +179,20 @@ export default function GroupChat() {
       timestamp: new Date(m.created_at),
     }));
 
-    setMessages(chatMessages);
-    setLoading(false);
+  // Fetch today's scan count
+  useEffect(() => {
+    if (!CURRENT_USER) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    supabase
+      .from('receipts')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', CURRENT_USER)
+      .gte('created_at', today.toISOString())
+      .then(({ count }) => setTodayScanCount(count || 0));
+  }, [CURRENT_USER, messages]);
+
+  const scanLimitReached = todayScanCount >= DAILY_SCAN_LIMIT;
   };
 
   useEffect(() => {
