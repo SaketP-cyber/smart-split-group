@@ -299,6 +299,12 @@ export default function GroupChat() {
     setScanning(true);
 
     try {
+      if (scanLimitReached) {
+        toast.error(`Daily AI scan limit reached (${DAILY_SCAN_LIMIT}/day). Use manual bill entry instead.`);
+        setManualBillOpen(true);
+        return;
+      }
+
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
