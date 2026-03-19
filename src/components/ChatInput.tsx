@@ -10,7 +10,7 @@ interface ChatInputProps {
   scanLimitReached?: boolean;
 }
 
-export function ChatInput({ onSendMessage, onUploadReceipt, isScanning }: ChatInputProps) {
+export function ChatInput({ onSendMessage, onUploadReceipt, onManualBill, isScanning, scanLimitReached }: ChatInputProps) {
   const [text, setText] = useState('');
   const [showActions, setShowActions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
