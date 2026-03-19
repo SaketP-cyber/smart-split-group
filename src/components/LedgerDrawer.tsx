@@ -68,6 +68,12 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
                         <span className="font-display text-negative">
                           {currency}{debt.amount.toFixed(2)}
                         </span>
+                        <button
+                          onClick={() => onSettleUp?.(debt.from, debt.to, debt.amount)}
+                          className="ml-1 px-2 py-1 text-xs bg-primary/10 text-primary rounded-lg font-display hover:bg-primary/20 transition-colors active:scale-95"
+                        >
+                          settle
+                        </button>
                       </motion.div>
                     );
                   })}
