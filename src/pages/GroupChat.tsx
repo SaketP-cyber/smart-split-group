@@ -382,6 +382,106 @@ export default function GroupChat() {
 
   const getMember = (id: string) => members.find(m => m.id === id) || { id, name: '??', initials: '??', color: 'bg-muted text-muted-foreground border-muted' };
 
+  const handleManualBill = async (items: { name: string; price: number }[], tax: number, tip: number, payerId: string) => {
+    if (!groupId) return;
+    try {
+      const { data: msgRow, error: msgError } = await supabase
+        .from('messages')
+        .insert({ group_id: groupId, type: 'receipt', sender_id: CURRENT_USER })
+        .select()
+        .single();
+      if (msgError) throw msgError;
+
+      const receiptItems = items.map((item, i) => ({
+        id: `mi-${Date.now()}-${i}`,
+        name: item.name,
+        price: item.price,
+        assignedTo: [],
+      }));
+      const total = items.reduce((s, i) => s + i.price, 0) + tax + tip;
+
+      const { data: receiptRow, error: rError } = await supabase
+        .from('receipts')
+        .insert({
+          message_id: msgRow.id,
+          group_id: groupId,
+          items: receiptItems as any,
+          tax,
+          tip,
+          total,
+          currency: '$',
+          created_by: payerId,
+        })
+        .select()
+        .single();
+      if (rError) throw rError;
+
+      const newReceipt: Receipt = {
+        id: receiptRow.id,
+        items: receiptItems,
+        tax,
+        tip,
+        total,
+        currency: '$',
+        createdBy: payerId,
+        createdAt: new Date(receiptRow.created_at),
+      };
+
+      const msg: ChatMessage = {
+        id: msgRow.id,
+        type: 'receipt',
+        receipt: newReceipt,
+        senderId: CURRENT_USER,
+        timestamp: new Date(msgRow.created_at),
+      };
+      setMessages(prev => [...prev, msg]);
+      toast.success('Bill added!');
+    } catch (err) {
+      console.error('Manual bill failed:', err);
+      toast.error('Failed to add bill.');
+    }
+  };
+
+  const handleSettleUp = async (fromId: string, toId: string, amount: number) => {
+    if (!groupId) return;
+    try {
+      await supabase.from('settlements').insert({
+        group_id: groupId,
+        from_user: fromId,
+        to_user: toId,
+        amount,
+      } as any);
+
+      // Add system message
+      const fromMember = getMember(fromId);
+      const toMember = getMember(toId);
+      const { data: msgRow } = await supabase
+        .from('messages')
+        .insert({
+          group_id: groupId,
+          type: 'system',
+          content: `${fromMember.name} paid ${toMember.name} $${amount.toFixed(2)}`,
+          sender_id: CURRENT_USER,
+        })
+        .select()
+        .single();
+
+      if (msgRow) {
+        setMessages(prev => [...prev, {
+          id: msgRow.id,
+          type: 'system',
+          content: msgRow.content || '',
+          senderId: CURRENT_USER,
+          timestamp: new Date(msgRow.created_at),
+        }]);
+      }
+      toast.success('Settled up!');
+    } catch (err) {
+      console.error('Settle up failed:', err);
+      toast.error('Failed to settle up.');
+    }
+  };
+
   return (
     <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10">
       <GroupHeader
