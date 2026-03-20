@@ -510,6 +510,9 @@ export default function GroupChat() {
         amount,
       } as any);
 
+      // Optimistically add settlement locally (realtime will handle other users)
+      setSettlements(prev => [...prev, { from_user: fromId, to_user: toId, amount }]);
+
       // Add system message
       const fromMember = getMember(fromId);
       const toMember = getMember(toId);
