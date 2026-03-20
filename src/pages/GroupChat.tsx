@@ -34,9 +34,9 @@ export default function GroupChat() {
     if (!groupId) return;
     loadGroupData();
 
-    // Subscribe to realtime messages
+    // Subscribe to realtime messages, members, and settlements
     const channel = supabase
-      .channel(`group-messages-${groupId}`)
+      .channel(`group-realtime-${groupId}`)
       .on(
         'postgres_changes',
         {
@@ -47,7 +47,6 @@ export default function GroupChat() {
         },
         async (payload) => {
           const m = payload.new as any;
-          // Skip if sent by current user (already added optimistically)
           if (m.sender_id === CURRENT_USER) return;
 
           let receipt: Receipt | undefined;
@@ -85,6 +84,52 @@ export default function GroupChat() {
             timestamp: new Date(m.created_at),
           };
           setMessages(prev => [...prev, msg]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_members',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          const gm = payload.new as any;
+          // Fetch the new member's profile and add to members list
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, display_name, initials, color')
+            .eq('id', gm.user_id)
+            .single();
+          if (profile) {
+            setMembers(prev => {
+              if (prev.some(m => m.id === profile.id)) return prev;
+              return [...prev, {
+                id: profile.id,
+                name: profile.display_name || profile.initials,
+                initials: profile.initials,
+                color: profile.color,
+              }];
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'settlements',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          const s = payload.new as any;
+          setSettlements(prev => [...prev, {
+            from_user: s.from_user,
+            to_user: s.to_user,
+            amount: Number(s.amount),
+          }]);
         }
       )
       .subscribe();
