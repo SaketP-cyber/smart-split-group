@@ -27,6 +27,7 @@ export default function GroupChat() {
   const [loading, setLoading] = useState(true);
   const [manualBillOpen, setManualBillOpen] = useState(false);
   const [todayScanCount, setTodayScanCount] = useState(0);
+  const [settlements, setSettlements] = useState<{ from_user: string; to_user: string; amount: number }[]>([]);
   const DAILY_SCAN_LIMIT = 2;
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -249,8 +250,7 @@ export default function GroupChat() {
     }
   }, [messages, scanning]);
 
-  // Fetch settlements for this group
-  const [settlements, setSettlements] = useState<{ from_user: string; to_user: string; amount: number }[]>([]);
+  // Fetch settlements for this group (initial load only; realtime handles updates)
   useEffect(() => {
     if (!groupId) return;
     supabase
@@ -258,7 +258,7 @@ export default function GroupChat() {
       .select('from_user, to_user, amount')
       .eq('group_id', groupId)
       .then(({ data }) => setSettlements((data as any) || []));
-  }, [groupId, messages]);
+  }, [groupId]);
 
   // Get all receipts from messages
   const allReceipts = messages
