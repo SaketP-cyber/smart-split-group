@@ -64,11 +64,16 @@ export function GroupHeader({ groupName, groupId, members, onOpenLedger }: Group
       </button>
       <div className="flex-1 min-w-0">
         <h1 className="font-display text-base leading-tight truncate">{groupName}</h1>
-        <div className="flex items-center gap-1 mt-0.5">
-          {members.map((m) => (
-            <AvatarBubble key={m.id} member={m} size="sm" isActive />
-          ))}
-          <span className="text-[10px] text-muted-foreground ml-1">{members.length} members</span>
+        <div className="flex items-center gap-1 mt-0.5 overflow-x-auto no-scrollbar max-w-full">
+          <div className="flex items-center gap-1 shrink-0">
+            {members.slice(0, 6).map((m) => (
+              <AvatarBubble key={m.id} member={m} size="sm" isActive />
+            ))}
+            {members.length > 6 && (
+              <span className="text-[10px] text-muted-foreground shrink-0">+{members.length - 6}</span>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{members.length} members</span>
         </div>
       </div>
       <motion.button

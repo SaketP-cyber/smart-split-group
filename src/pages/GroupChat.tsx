@@ -544,7 +544,7 @@ export default function GroupChat() {
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10">
+    <div className="h-[100dvh] flex flex-col bg-background max-w-md mx-auto border-x-1.5 border-foreground/10 overflow-hidden">
       <GroupHeader
         groupName={groupName || 'loading...'}
         groupId={groupId || ''}
