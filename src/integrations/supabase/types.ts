@@ -256,6 +256,10 @@ export type Database = {
         Args: { _members: Json; _name: string }
         Returns: string
       }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
       join_group_via_invite: { Args: { _token: string }; Returns: string }
     }
     Enums: {
