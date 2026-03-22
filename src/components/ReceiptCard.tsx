@@ -66,7 +66,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
             <p className="font-mono-data text-sm text-foreground tabular-nums shrink-0">
               {receipt.currency}{item.price.toFixed(2)}
             </p>
-            <div className="flex gap-1 shrink-0">
+            <div className="flex gap-1 shrink-0 overflow-x-auto no-scrollbar max-w-[50%]">
               {members.map((m) => (
                 <AvatarBubble
                   key={m.id}
@@ -131,14 +131,14 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
       <div className="border-t border-foreground/10 my-3" />
       <div className="flex items-center gap-2 px-2 mb-2">
         <span className="text-xs text-muted-foreground">paid by</span>
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-full">
           {members.map((m) => {
             const isPayer = receipt.createdBy === m.id;
             return (
               <button
                 key={m.id}
                 onClick={() => onChangePayer?.(receipt.id, m.id)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all border-1.5 ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all border-1.5 shrink-0 ${
                   isPayer
                     ? 'bg-primary/15 border-primary/40 text-primary font-medium'
                     : 'bg-muted/50 border-transparent text-muted-foreground hover:border-foreground/20'

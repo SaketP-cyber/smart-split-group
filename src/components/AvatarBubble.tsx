@@ -15,18 +15,24 @@ const sizeMap = {
 };
 
 export function AvatarBubble({ member, isActive = false, size = 'md', onTap }: AvatarBubbleProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTap?.();
+  };
+
   return (
     <motion.button
       whileTap={{ scale: 0.95 }}
-      onClick={onTap}
+      onClick={handleClick}
+      type="button"
       className={`
         ${sizeMap[size]} rounded-full font-bold border-1.5
-        flex items-center justify-center select-none cursor-pointer
+        flex items-center justify-center select-none cursor-pointer shrink-0
         transition-all duration-200
         ${member.color}
         ${isActive ? 'shadow-card-sm ring-2 ring-foreground/20 opacity-100' : 'opacity-40'}
       `}
-      layoutId={onTap ? undefined : `avatar-${member.id}`}
     >
       {member.initials}
     </motion.button>
