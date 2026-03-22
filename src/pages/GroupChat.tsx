@@ -49,7 +49,11 @@ export default function GroupChat() {
         },
         async (payload) => {
           const m = payload.new as any;
-          if (m.sender_id === CURRENT_USER) return;
+          // Skip own messages except system messages (settle up etc.)
+          if (m.sender_id === CURRENT_USER && m.type !== 'system') return;
+          // Deduplicate
+          setMessages(prev => {
+            if (prev.some(msg => msg.id === m.id)) return prev;
 
           let receipt: Receipt | undefined;
           if (m.type === 'receipt') {
