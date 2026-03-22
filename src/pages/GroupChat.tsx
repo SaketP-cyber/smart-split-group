@@ -244,10 +244,12 @@ export default function GroupChat() {
 
   const scanLimitReached = todayScanCount >= DAILY_SCAN_LIMIT;
 
+  const prevMsgCount = useRef(0);
   useEffect(() => {
-    if (feedRef.current) {
+    if (feedRef.current && messages.length > prevMsgCount.current) {
       feedRef.current.scrollTop = feedRef.current.scrollHeight;
     }
+    prevMsgCount.current = messages.length;
   }, [messages, scanning]);
 
   // Fetch settlements for this group (initial load only; realtime handles updates)
