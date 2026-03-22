@@ -49,7 +49,8 @@ export default function GroupChat() {
         },
         async (payload) => {
           const m = payload.new as any;
-          if (m.sender_id === CURRENT_USER) return;
+          // Skip own non-system messages (they're added locally already)
+          if (m.sender_id === CURRENT_USER && m.type !== 'system') return;
 
           let receipt: Receipt | undefined;
           if (m.type === 'receipt') {
@@ -85,7 +86,8 @@ export default function GroupChat() {
             senderId: m.sender_id,
             timestamp: new Date(m.created_at),
           };
-          setMessages(prev => [...prev, msg]);
+          // Deduplicate before adding
+          setMessages(prev => prev.some(p => p.id === msg.id) ? prev : [...prev, msg]);
         }
       )
       .on(
@@ -536,32 +538,20 @@ export default function GroupChat() {
         amount,
       } as any);
 
-      // Optimistically add settlement locally (realtime will handle other users)
-      setSettlements(prev => [...prev, { from_user: fromId, to_user: toId, amount }]);
+      // Settlement is added via realtime listener — no local optimistic update needed
 
-      // Add system message
+      // Add system message — it will appear via realtime listener
       const fromMember = getMember(fromId);
       const toMember = getMember(toId);
-      const { data: msgRow } = await supabase
+      await supabase
         .from('messages')
         .insert({
           group_id: groupId,
           type: 'system',
           content: `${fromMember.name} paid ${toMember.name} $${amount.toFixed(2)}`,
           sender_id: CURRENT_USER,
-        })
-        .select()
-        .single();
+        });
 
-      if (msgRow) {
-        setMessages(prev => [...prev, {
-          id: msgRow.id,
-          type: 'system',
-          content: msgRow.content || '',
-          senderId: CURRENT_USER,
-          timestamp: new Date(msgRow.created_at),
-        }]);
-      }
       toast.success('Settled up!');
     } catch (err) {
       console.error('Settle up failed:', err);
