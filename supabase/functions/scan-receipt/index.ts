@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const DAILY_SCAN_LIMIT = 2;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -15,8 +18,45 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Authenticate the user server-side
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) throw new Error("Not authenticated");
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Not authenticated");
+
+    // Server-side scan limit enforcement
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from("receipts")
+      .select("id", { count: "exact", head: true })
+      .eq("created_by", user.id)
+      .gte("created_at", today.toISOString());
+
+    if ((count || 0) >= DAILY_SCAN_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: `Daily scan limit reached (${DAILY_SCAN_LIMIT}/day). Use manual bill entry instead.` }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { imageBase64, mimeType } = await req.json();
     if (!imageBase64) throw new Error("No image provided");
+
+    // Limit payload size (~10MB base64)
+    if (imageBase64.length > 10 * 1024 * 1024) {
+      return new Response(
+        JSON.stringify({ error: "Image too large. Please use a smaller image." }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -124,13 +164,11 @@ Rules:
 
     const data = await response.json();
     
-    // Extract from tool call response
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     let parsed;
     if (toolCall?.function?.arguments) {
       parsed = JSON.parse(toolCall.function.arguments);
     } else {
-      // Fallback: try parsing content directly
       const content = data.choices?.[0]?.message?.content || "";
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("Could not parse receipt data from AI response");
