@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChatMessage, Member, Receipt, ReceiptItem } from '@/lib/types';
+import { toast as sonnerToast } from 'sonner';
 import { calculatePersonTotal, simplifyDebts } from '@/lib/split-calculator';
 import { GroupHeader } from '@/components/GroupHeader';
 import { BalanceBar } from '@/components/BalanceBar';
@@ -335,6 +336,29 @@ export default function GroupChat() {
     }));
   };
 
+  const handleDeleteReceipt = async (receiptId: string, messageId: string) => {
+    try {
+      await supabase.from('receipts').delete().eq('id', receiptId);
+      await supabase.from('messages').delete().eq('id', messageId);
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      toast.success('Bill deleted');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      toast.error('Failed to delete bill');
+    }
+  };
+
+  const handleUpdateReceipt = async (receiptId: string, items: ReceiptItem[], tax: number, tip: number) => {
+    const total = items.reduce((s, i) => s + i.price, 0) + tax + tip;
+    const itemsJson = items.map(i => ({ id: i.id, name: i.name, price: i.price, assignedTo: i.assignedTo }));
+    await supabase.from('receipts').update({ items: itemsJson as any, tax, tip, total }).eq('id', receiptId);
+    setMessages(prev => prev.map(msg => {
+      if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
+      return { ...msg, receipt: { ...msg.receipt, items, tax, tip, total } };
+    }));
+    toast.success('Bill updated');
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!groupId) return;
     const { data, error } = await supabase
@@ -589,6 +613,9 @@ export default function GroupChat() {
                     onToggleAssignment={(itemId, memberId) => handleToggleAssignment(msg.receipt!.id, itemId, memberId)}
                     onAddItem={handleAddItem}
                     onChangePayer={handleChangePayer}
+                    onDeleteReceipt={handleDeleteReceipt}
+                    onUpdateReceipt={handleUpdateReceipt}
+                    messageId={msg.id}
                   />
                 </div>
               );

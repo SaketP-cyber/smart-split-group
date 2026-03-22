@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { Receipt as ReceiptIcon, Plus, Check, X } from 'lucide-react';
-import { Receipt, Member } from '@/lib/types';
+import { Receipt as ReceiptIcon, Plus, Check, X, Trash2, Pencil } from 'lucide-react';
+import { Receipt, Member, ReceiptItem } from '@/lib/types';
 import { AvatarBubble } from './AvatarBubble';
 import { calculateAllTotals } from '@/lib/split-calculator';
 import { useState } from 'react';
@@ -12,15 +12,25 @@ interface ReceiptCardProps {
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
   onChangePayer?: (receiptId: string, payerId: string) => void;
+  onDeleteReceipt?: (receiptId: string, messageId: string) => void;
+  onUpdateReceipt?: (receiptId: string, items: ReceiptItem[], tax: number, tip: number) => void;
+  messageId?: string;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
   const [addingItem, setAddingItem] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editItems, setEditItems] = useState<ReceiptItem[]>([]);
+  const [editTax, setEditTax] = useState('');
+  const [editTip, setEditTip] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const isCreator = receipt.createdBy === currentUserId;
 
   const handleConfirmAdd = () => {
     const name = newItemName.trim();
@@ -32,6 +42,95 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
     setAddingItem(false);
   };
 
+  const startEdit = () => {
+    setEditItems(receipt.items.map(i => ({ ...i, assignedTo: [...i.assignedTo] })));
+    setEditTax(receipt.tax.toString());
+    setEditTip(receipt.tip.toString());
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    const tax = parseFloat(editTax) || 0;
+    const tip = parseFloat(editTip) || 0;
+    onUpdateReceipt?.(receipt.id, editItems, tax, tip);
+    setEditing(false);
+  };
+
+  const updateEditItem = (idx: number, field: 'name' | 'price', value: string) => {
+    setEditItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item;
+      if (field === 'price') return { ...item, price: parseFloat(value) || 0 };
+      return { ...item, [field]: value };
+    }));
+  };
+
+  const removeEditItem = (idx: number) => {
+    setEditItems(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const addEditItem = () => {
+    setEditItems(prev => [...prev, { id: `ei-${Date.now()}`, name: '', price: 0, assignedTo: [] }]);
+  };
+
+  if (editing) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="bg-card border-1.5 border-primary rounded-2xl p-4 shadow-card w-full max-w-sm"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-display text-sm text-foreground">edit bill</p>
+          <div className="flex gap-1">
+            <button onClick={saveEdit} className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+              <Check className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => setEditing(false)} className="h-7 w-7 rounded-full bg-muted flex items-center justify-center">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {editItems.map((item, idx) => (
+            <div key={item.id} className="flex items-center gap-2">
+              <input
+                className="flex-1 text-sm bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
+                value={item.name}
+                onChange={(e) => updateEditItem(idx, 'name', e.target.value)}
+                placeholder="item name"
+              />
+              <input
+                className="w-20 text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
+                value={item.price || ''}
+                onChange={(e) => updateEditItem(idx, 'price', e.target.value)}
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+              />
+              <button onClick={() => removeEditItem(idx)} className="h-6 w-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={addEditItem} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-2 px-2 py-1 transition-colors">
+          <Plus className="h-3 w-3" /> add item
+        </button>
+        <div className="border-t border-foreground/10 my-2" />
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">tax</label>
+            <input className="w-full text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none" value={editTax} onChange={(e) => setEditTax(e.target.value)} type="number" step="0.01" />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">tip</label>
+            <input className="w-full text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none" value={editTip} onChange={(e) => setEditTip(e.target.value)} type="number" step="0.01" />
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -41,15 +140,51 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <ReceiptIcon className="h-4 w-4 text-primary" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-display text-sm text-foreground">receipt scanned</p>
           <p className="text-xs text-muted-foreground font-mono-data">
             {receipt.items.length} items · {receipt.currency}{subtotal.toFixed(2)}
           </p>
         </div>
+        {isCreator && (
+          <div className="flex gap-1 shrink-0">
+            <button
+              onClick={startEdit}
+              className="h-7 w-7 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+              title="Edit bill"
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+            {confirmDelete ? (
+              <div className="flex gap-1 items-center">
+                <span className="text-xs text-destructive">delete?</span>
+                <button
+                  onClick={() => { onDeleteReceipt?.(receipt.id, messageId || ''); setConfirmDelete(false); }}
+                  className="h-7 w-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="h-7 w-7 rounded-full bg-muted flex items-center justify-center"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="h-7 w-7 rounded-full bg-muted hover:bg-destructive/10 flex items-center justify-center transition-colors"
+                title="Delete bill"
+              >
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Items */}
