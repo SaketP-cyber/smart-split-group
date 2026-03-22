@@ -49,11 +49,8 @@ export default function GroupChat() {
         },
         async (payload) => {
           const m = payload.new as any;
-          // Skip own messages except system messages (settle up etc.)
+          // Skip own non-system messages (they're added locally already)
           if (m.sender_id === CURRENT_USER && m.type !== 'system') return;
-          // Deduplicate
-          setMessages(prev => {
-            if (prev.some(msg => msg.id === m.id)) return prev;
 
           let receipt: Receipt | undefined;
           if (m.type === 'receipt') {
@@ -89,7 +86,8 @@ export default function GroupChat() {
             senderId: m.sender_id,
             timestamp: new Date(m.created_at),
           };
-          setMessages(prev => [...prev, msg]);
+          // Deduplicate before adding
+          setMessages(prev => prev.some(p => p.id === msg.id) ? prev : [...prev, msg]);
         }
       )
       .on(
