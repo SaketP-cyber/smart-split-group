@@ -5,6 +5,8 @@ import { AvatarBubble } from './AvatarBubble';
 import { calculateAllTotals } from '@/lib/split-calculator';
 import { useState } from 'react';
 
+const CURRENCIES = ['$', '€', '£', '¥', '₹', '₩', 'A$', 'C$', 'CHF', 'R$'];
+
 interface ReceiptCardProps {
   receipt: Receipt;
   members: Member[];
@@ -12,12 +14,13 @@ interface ReceiptCardProps {
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
   onChangePayer?: (receiptId: string, payerId: string) => void;
+  onChangeCurrency?: (receiptId: string, currency: string) => void;
   onDeleteReceipt?: (receiptId: string, messageId: string) => void;
   onUpdateReceipt?: (receiptId: string, items: ReceiptItem[], tax: number, tip: number) => void;
   messageId?: string;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onChangeCurrency, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
@@ -268,7 +271,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <span className="text-xs text-muted-foreground">paid by</span>
         <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-full">
           {members.map((m) => {
-            const isPayer = receipt.createdBy === m.id;
+            const isPayer = receipt.paidBy === m.id;
             return (
               <button
                 key={m.id}
@@ -287,6 +290,28 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
           })}
         </div>
       </div>
+
+      {/* Currency */}
+      {isCreator && (
+        <div className="flex items-center gap-2 px-2 mb-2">
+          <span className="text-xs text-muted-foreground">currency</span>
+          <div className="flex gap-1 overflow-x-auto no-scrollbar">
+            {CURRENCIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => onChangeCurrency?.(receipt.id, c)}
+                className={`px-2 py-0.5 rounded-full text-xs transition-all border-1.5 shrink-0 ${
+                  receipt.currency === c
+                    ? 'bg-primary/15 border-primary/40 text-primary font-medium'
+                    : 'bg-muted/50 border-transparent text-muted-foreground hover:border-foreground/20'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tax & Tip */}
       <div className="space-y-1 px-2">

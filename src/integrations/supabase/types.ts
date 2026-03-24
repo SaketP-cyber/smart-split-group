@@ -167,6 +167,7 @@ export type Database = {
           id: string
           items: Json
           message_id: string
+          paid_by: string
           tax: number
           tip: number
           total: number
@@ -179,6 +180,7 @@ export type Database = {
           id?: string
           items?: Json
           message_id: string
+          paid_by?: string
           tax?: number
           tip?: number
           total?: number
@@ -191,6 +193,7 @@ export type Database = {
           id?: string
           items?: Json
           message_id?: string
+          paid_by?: string
           tax?: number
           tip?: number
           total?: number
