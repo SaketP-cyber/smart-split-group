@@ -20,6 +20,7 @@ export interface Receipt {
   total: number;
   currency: string;
   createdBy: string;
+  paidBy: string;
   createdAt: Date;
 }
 
