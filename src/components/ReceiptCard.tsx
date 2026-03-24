@@ -149,7 +149,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <div className="flex-1 min-w-0">
           <p className="font-display text-sm text-foreground">receipt scanned</p>
           <p className="text-xs text-muted-foreground font-mono-data">
-            {receipt.items.length} items · {receipt.currency}{subtotal.toFixed(2)}
+            {receipt.items.length} items · {currency}{subtotal.toFixed(2)}
           </p>
         </div>
         {isCreator && (
@@ -202,7 +202,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
               <p className="text-sm text-foreground truncate">{item.name}</p>
             </div>
             <p className="font-mono-data text-sm text-foreground tabular-nums shrink-0">
-              {receipt.currency}{item.price.toFixed(2)}
+              {currency}{item.price.toFixed(2)}
             </p>
             <div className="flex gap-1 shrink-0 overflow-x-auto no-scrollbar max-w-[50%]">
               {members.map((m) => (
@@ -296,11 +296,11 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
       <div className="space-y-1 px-2">
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>tax</span>
-          <span className="font-mono-data">{receipt.currency}{receipt.tax.toFixed(2)}</span>
+          <span className="font-mono-data">{currency}{receipt.tax.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>tip</span>
-          <span className="font-mono-data">{receipt.currency}{receipt.tip.toFixed(2)}</span>
+          <span className="font-mono-data">{currency}{receipt.tip.toFixed(2)}</span>
         </div>
       </div>
 
@@ -309,7 +309,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <div className="flex justify-between items-baseline">
           <span className="text-sm text-foreground font-medium">your total</span>
           <span className="font-display text-xl text-primary">
-            {receipt.currency}{myTotal.toFixed(2)}
+            {currency}{myTotal.toFixed(2)}
           </span>
         </div>
       </div>
@@ -319,7 +319,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         {members.filter(m => m.id !== currentUserId).map((m) => (
           <div key={m.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <AvatarBubble member={m} size="sm" isActive />
-            <span className="font-mono-data">{receipt.currency}{(totals[m.id] || 0).toFixed(2)}</span>
+            <span className="font-mono-data">{currency}{(totals[m.id] || 0).toFixed(2)}</span>
           </div>
         ))}
       </div>
