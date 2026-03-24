@@ -208,7 +208,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
                   member={m}
                   size="sm"
                   isActive={item.assignedTo.includes(m.id)}
-                  onTap={() => onToggleAssignment(item.id, m.id)}
+                  onTap={isCreator ? () => onToggleAssignment(item.id, m.id) : undefined}
                 />
               ))}
             </div>
@@ -217,7 +217,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
       </div>
 
       {/* Add item inline */}
-      {addingItem ? (
+      {isCreator && addingItem ? (
         <motion.div
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
@@ -253,14 +253,14 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
             <X className="h-3.5 w-3.5" />
           </button>
         </motion.div>
-      ) : (
+      ) : isCreator ? (
         <button
           onClick={() => setAddingItem(true)}
           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-2 px-2 py-1 transition-colors"
         >
           <Plus className="h-3 w-3" /> add item
         </button>
-      )}
+      ) : null}
 
       {/* Paid by */}
       <div className="border-t border-foreground/10 my-3" />
@@ -272,7 +272,8 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
             return (
               <button
                 key={m.id}
-                onClick={() => onChangePayer?.(receipt.id, m.id)}
+                onClick={isCreator ? () => onChangePayer?.(receipt.id, m.id) : undefined}
+                disabled={!isCreator}
                 className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all border-1.5 shrink-0 ${
                   isPayer
                     ? 'bg-primary/15 border-primary/40 text-primary font-medium'

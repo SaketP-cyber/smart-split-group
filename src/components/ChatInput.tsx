@@ -35,7 +35,7 @@ export function ChatInput({ onSendMessage, onUploadReceipt, onManualBill, isScan
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf"
         className="hidden"
         onChange={handleFileChange}
       />
