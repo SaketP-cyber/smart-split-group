@@ -73,6 +73,7 @@ export default function GroupChat() {
                 total: Number(r.total),
                 currency: r.currency,
                 createdBy: r.created_by,
+                paidBy: (r as any).paid_by || r.created_by,
                 createdAt: new Date(r.created_at),
               };
             }
@@ -214,6 +215,7 @@ export default function GroupChat() {
           total: Number(r.total),
           currency: r.currency,
           createdBy: r.created_by,
+          paidBy: (r as any).paid_by || r.created_by,
           createdAt: new Date(r.created_at),
         });
       }
@@ -333,8 +335,8 @@ export default function GroupChat() {
   const handleChangePayer = async (receiptId: string, payerId: string) => {
     setMessages(prev => prev.map(msg => {
       if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
-      supabase.from('receipts').update({ created_by: payerId }).eq('id', receiptId).then();
-      return { ...msg, receipt: { ...msg.receipt, createdBy: payerId } };
+      supabase.from('receipts').update({ paid_by: payerId } as any).eq('id', receiptId).then();
+      return { ...msg, receipt: { ...msg.receipt, paidBy: payerId } };
     }));
   };
 
@@ -446,6 +448,7 @@ export default function GroupChat() {
         total: data.total || 0,
         currency: data.currency || '$',
         createdBy: CURRENT_USER,
+        paidBy: CURRENT_USER,
         createdAt: new Date(receiptRow.created_at),
       };
 
@@ -509,7 +512,8 @@ export default function GroupChat() {
         tip,
         total,
         currency: '$',
-        createdBy: payerId,
+        createdBy: CURRENT_USER,
+        paidBy: payerId,
         createdAt: new Date(receiptRow.created_at),
       };
 

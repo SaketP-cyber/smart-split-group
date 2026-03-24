@@ -21,6 +21,7 @@ export const MOCK_RECEIPT: Receipt = {
   total: 97.25,
   currency: '$',
   createdBy: 'me',
+  paidBy: 'me',
   createdAt: new Date(Date.now() - 1000 * 60 * 15),
 };
 
