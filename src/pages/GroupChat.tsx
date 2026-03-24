@@ -443,7 +443,8 @@ export default function GroupChat() {
           total: data.total || 0,
           currency: data.currency || '$',
           created_by: CURRENT_USER,
-        })
+          paid_by: CURRENT_USER,
+        } as any)
         .select()
         .single();
       if (rError) throw rError;
