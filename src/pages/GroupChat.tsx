@@ -340,6 +340,14 @@ export default function GroupChat() {
     }));
   };
 
+  const handleChangeCurrency = async (receiptId: string, currency: string) => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.type !== 'receipt' || !msg.receipt || msg.receipt.id !== receiptId) return msg;
+      supabase.from('receipts').update({ currency }).eq('id', receiptId).then();
+      return { ...msg, receipt: { ...msg.receipt, currency } };
+    }));
+  };
+
   const handleDeleteReceipt = async (receiptId: string, messageId: string) => {
     try {
       await supabase.from('receipts').delete().eq('id', receiptId);
