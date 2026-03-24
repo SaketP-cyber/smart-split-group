@@ -50,6 +50,15 @@ serve(async (req) => {
     const { imageBase64, mimeType } = await req.json();
     if (!imageBase64) throw new Error("No image provided");
 
+    const supportedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+    const resolvedMime = mimeType || "image/jpeg";
+    if (!supportedTypes.includes(resolvedMime)) {
+      return new Response(
+        JSON.stringify({ error: "Unsupported file type. Please upload an image or PDF." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Limit payload size (~10MB base64)
     if (imageBase64.length > 10 * 1024 * 1024) {
       return new Response(
@@ -79,7 +88,7 @@ serve(async (req) => {
                 {
                   type: "image_url",
                   image_url: {
-                    url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}`,
+                    url: `data:${resolvedMime};base64,${imageBase64}`,
                   },
                 },
                 {
