@@ -278,7 +278,7 @@ export default function GroupChat() {
   for (const r of allReceipts) {
     for (const m of members) {
       const t = calculatePersonTotal(r, m.id);
-      if (r.createdBy === m.id) {
+      if (r.paidBy === m.id) {
         balances[m.id] += r.total - t;
       } else {
         balances[m.id] -= t;
