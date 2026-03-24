@@ -507,8 +507,9 @@ export default function GroupChat() {
           tip,
           total,
           currency: '$',
-          created_by: payerId,
-        })
+          created_by: CURRENT_USER,
+          paid_by: payerId,
+        } as any)
         .select()
         .single();
       if (rError) throw rError;
