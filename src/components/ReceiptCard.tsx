@@ -5,7 +5,7 @@ import { AvatarBubble } from './AvatarBubble';
 import { calculateAllTotals } from '@/lib/split-calculator';
 import { useState } from 'react';
 
-const CURRENCIES = ['$', '€', '£', '¥', '₹', '₩', 'A$', 'C$', 'CHF', 'R$'];
+const DEFAULT_CURRENCY = '₹';
 
 interface ReceiptCardProps {
   receipt: Receipt;
@@ -14,13 +14,13 @@ interface ReceiptCardProps {
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
   onChangePayer?: (receiptId: string, payerId: string) => void;
-  onChangeCurrency?: (receiptId: string, currency: string) => void;
   onDeleteReceipt?: (receiptId: string, messageId: string) => void;
   onUpdateReceipt?: (receiptId: string, items: ReceiptItem[], tax: number, tip: number) => void;
   messageId?: string;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onChangeCurrency, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
+  const currency = DEFAULT_CURRENCY;
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
@@ -149,7 +149,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <div className="flex-1 min-w-0">
           <p className="font-display text-sm text-foreground">receipt scanned</p>
           <p className="text-xs text-muted-foreground font-mono-data">
-            {receipt.items.length} items · {receipt.currency}{subtotal.toFixed(2)}
+            {receipt.items.length} items · {currency}{subtotal.toFixed(2)}
           </p>
         </div>
         {isCreator && (
@@ -202,7 +202,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
               <p className="text-sm text-foreground truncate">{item.name}</p>
             </div>
             <p className="font-mono-data text-sm text-foreground tabular-nums shrink-0">
-              {receipt.currency}{item.price.toFixed(2)}
+              {currency}{item.price.toFixed(2)}
             </p>
             <div className="flex gap-1 shrink-0 overflow-x-auto no-scrollbar max-w-[50%]">
               {members.map((m) => (
@@ -291,37 +291,16 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         </div>
       </div>
 
-      {/* Currency */}
-      {isCreator && (
-        <div className="flex items-center gap-2 px-2 mb-2">
-          <span className="text-xs text-muted-foreground">currency</span>
-          <div className="flex gap-1 overflow-x-auto no-scrollbar">
-            {CURRENCIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => onChangeCurrency?.(receipt.id, c)}
-                className={`px-2 py-0.5 rounded-full text-xs transition-all border-1.5 shrink-0 ${
-                  receipt.currency === c
-                    ? 'bg-primary/15 border-primary/40 text-primary font-medium'
-                    : 'bg-muted/50 border-transparent text-muted-foreground hover:border-foreground/20'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Tax & Tip */}
       <div className="space-y-1 px-2">
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>tax</span>
-          <span className="font-mono-data">{receipt.currency}{receipt.tax.toFixed(2)}</span>
+          <span className="font-mono-data">{currency}{receipt.tax.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>tip</span>
-          <span className="font-mono-data">{receipt.currency}{receipt.tip.toFixed(2)}</span>
+          <span className="font-mono-data">{currency}{receipt.tip.toFixed(2)}</span>
         </div>
       </div>
 
@@ -330,7 +309,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         <div className="flex justify-between items-baseline">
           <span className="text-sm text-foreground font-medium">your total</span>
           <span className="font-display text-xl text-primary">
-            {receipt.currency}{myTotal.toFixed(2)}
+            {currency}{myTotal.toFixed(2)}
           </span>
         </div>
       </div>
@@ -340,7 +319,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         {members.filter(m => m.id !== currentUserId).map((m) => (
           <div key={m.id} className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <AvatarBubble member={m} size="sm" isActive />
-            <span className="font-mono-data">{receipt.currency}{(totals[m.id] || 0).toFixed(2)}</span>
+            <span className="font-mono-data">{currency}{(totals[m.id] || 0).toFixed(2)}</span>
           </div>
         ))}
       </div>

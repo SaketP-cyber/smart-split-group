@@ -617,7 +617,7 @@ export default function GroupChat() {
                     onToggleAssignment={(itemId, memberId) => handleToggleAssignment(msg.receipt!.id, itemId, memberId)}
                     onAddItem={handleAddItem}
                     onChangePayer={handleChangePayer}
-                    onChangeCurrency={handleChangeCurrency}
+                    
                     onDeleteReceipt={handleDeleteReceipt}
                     onUpdateReceipt={handleUpdateReceipt}
                     messageId={msg.id}
