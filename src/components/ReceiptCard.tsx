@@ -5,7 +5,7 @@ import { AvatarBubble } from './AvatarBubble';
 import { calculateAllTotals } from '@/lib/split-calculator';
 import { useState } from 'react';
 
-const CURRENCIES = ['$', '€', '£', '¥', '₹', '₩', 'A$', 'C$', 'CHF', 'R$'];
+const DEFAULT_CURRENCY = '₹';
 
 interface ReceiptCardProps {
   receipt: Receipt;
@@ -14,13 +14,13 @@ interface ReceiptCardProps {
   onToggleAssignment: (itemId: string, memberId: string) => void;
   onAddItem?: (receiptId: string, name: string, price: number) => void;
   onChangePayer?: (receiptId: string, payerId: string) => void;
-  onChangeCurrency?: (receiptId: string, currency: string) => void;
   onDeleteReceipt?: (receiptId: string, messageId: string) => void;
   onUpdateReceipt?: (receiptId: string, items: ReceiptItem[], tax: number, tip: number) => void;
   messageId?: string;
 }
 
-export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onChangeCurrency, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
+export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignment, onAddItem, onChangePayer, onDeleteReceipt, onUpdateReceipt, messageId }: ReceiptCardProps) {
+  const currency = DEFAULT_CURRENCY;
   const totals = calculateAllTotals(receipt, members);
   const myTotal = totals[currentUserId] || 0;
   const subtotal = receipt.items.reduce((s, i) => s + i.price, 0);
