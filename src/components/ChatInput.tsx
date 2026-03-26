@@ -81,7 +81,7 @@ export function ChatInput({ onSendMessage, onUploadReceipt, onManualBill, isScan
         <div className="flex-1 bg-muted rounded-2xl border-1.5 border-foreground/10 px-3 py-2 flex items-end">
           <textarea
             className="flex-1 bg-transparent resize-none text-sm outline-none max-h-24 leading-snug placeholder:text-muted-foreground"
-            placeholder="message..."
+            placeholder="Message..."
             rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}

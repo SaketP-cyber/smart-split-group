@@ -35,7 +35,7 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
           >
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-lg">ledger</h2>
+                <h2 className="font-display text-lg">Ledger</h2>
                 <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-full transition-colors">
                   <X className="h-5 w-5" />
                 </button>
@@ -43,7 +43,7 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
 
               {debts.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  all settled up! 🎉
+                  All Settled Up! 🎉
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -60,9 +60,9 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
                       >
                         <AvatarBubble member={from} size="md" isActive />
                         <div className="flex-1 flex items-center gap-2">
-                          <span className="text-sm text-foreground">{from.name.toLowerCase()}</span>
+                          <span className="text-sm text-foreground">{from.name}</span>
                           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-sm text-foreground">{to.name.toLowerCase()}</span>
+                          <span className="text-sm text-foreground">{to.name}</span>
                         </div>
                         <AvatarBubble member={to} size="md" isActive />
                         <span className="font-display text-negative">
@@ -72,7 +72,7 @@ export function LedgerDrawer({ isOpen, onClose, debts, members, currency, onSett
                           onClick={() => onSettleUp?.(debt.from, debt.to, debt.amount)}
                           className="ml-1 px-2 py-1 text-xs bg-primary/10 text-primary rounded-lg font-display hover:bg-primary/20 transition-colors active:scale-95"
                         >
-                          settle
+                          Settle
                         </button>
                       </motion.div>
                     );

@@ -65,7 +65,7 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
           >
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-lg">add bill manually</h2>
+                <h2 className="font-display text-lg">Add Bill Manually</h2>
                 <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-full transition-colors">
                   <X className="h-5 w-5" />
                 </button>
@@ -73,12 +73,12 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
 
               {/* Items */}
               <div className="space-y-2 mb-4">
-                <label className="text-xs text-muted-foreground font-medium">items</label>
+                <label className="text-xs text-muted-foreground font-medium">Items</label>
                 {items.map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <input
                       className="flex-1 text-sm bg-muted rounded-lg px-3 py-2 border-1.5 border-foreground/10 focus:border-foreground outline-none"
-                      placeholder="item name"
+                      placeholder="Item Name"
                       value={item.name}
                       onChange={(e) => updateItem(i, 'name', e.target.value)}
                     />
@@ -101,14 +101,14 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
                   onClick={addItem}
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
                 >
-                  <Plus className="h-3 w-3" /> add item
+                  <Plus className="h-3 w-3" /> Add Item
                 </button>
               </div>
 
               {/* Tax & Tip */}
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium">tax</label>
+                  <label className="text-xs text-muted-foreground font-medium">Tax</label>
                   <input
                     className="w-full text-sm font-mono-data bg-muted rounded-lg px-3 py-2 border-1.5 border-foreground/10 focus:border-foreground outline-none mt-1"
                     placeholder="0.00"
@@ -119,7 +119,7 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground font-medium">tip</label>
+                  <label className="text-xs text-muted-foreground font-medium">Tip</label>
                   <input
                     className="w-full text-sm font-mono-data bg-muted rounded-lg px-3 py-2 border-1.5 border-foreground/10 focus:border-foreground outline-none mt-1"
                     placeholder="0.00"
@@ -133,7 +133,7 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
 
               {/* Paid by */}
               <div className="mb-4">
-                <label className="text-xs text-muted-foreground font-medium mb-2 block">paid by</label>
+                <label className="text-xs text-muted-foreground font-medium mb-2 block">Paid By</label>
                 <div className="flex gap-1 flex-wrap">
                   {members.map((m) => (
                     <button
@@ -155,7 +155,7 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
               {/* Total */}
               <div className="bg-muted/50 rounded-xl p-3 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">total</span>
+                  <span className="text-muted-foreground">Total</span>
                   <span className="font-display text-foreground">${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export function ManualBillDialog({ isOpen, onClose, members, currentUserId, onSu
                 className="w-full bg-foreground text-background rounded-xl py-3 font-display text-sm active:scale-[0.98] transition-transform disabled:opacity-40"
               >
                 <Check className="h-4 w-4 inline mr-1" />
-                add bill
+                Add Bill
               </button>
             </div>
           </motion.div>

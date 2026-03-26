@@ -73,7 +73,7 @@ export function GroupHeader({ groupName, groupId, members, onOpenLedger }: Group
               <span className="text-[10px] text-muted-foreground shrink-0">+{members.length - 6}</span>
             )}
           </div>
-          <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{members.length} members</span>
+          <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{members.length} Members</span>
         </div>
       </div>
       <motion.button

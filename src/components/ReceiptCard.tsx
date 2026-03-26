@@ -83,7 +83,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         className="bg-card border-1.5 border-primary rounded-2xl p-4 shadow-card w-full max-w-sm"
       >
         <div className="flex items-center justify-between mb-3">
-          <p className="font-display text-sm text-foreground">edit bill</p>
+          <p className="font-display text-sm text-foreground">Edit Bill</p>
           <div className="flex gap-1">
             <button onClick={saveEdit} className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
               <Check className="h-3.5 w-3.5" />
@@ -100,7 +100,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
                 className="flex-1 text-sm bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
                 value={item.name}
                 onChange={(e) => updateEditItem(idx, 'name', e.target.value)}
-                placeholder="item name"
+                placeholder="Item Name"
               />
               <input
                 className="w-20 text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
@@ -117,16 +117,16 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
           ))}
         </div>
         <button onClick={addEditItem} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-2 px-2 py-1 transition-colors">
-          <Plus className="h-3 w-3" /> add item
+          <Plus className="h-3 w-3" /> Add Item
         </button>
         <div className="border-t border-foreground/10 my-2" />
         <div className="flex gap-2">
           <div className="flex-1">
-            <label className="text-xs text-muted-foreground">tax</label>
+            <label className="text-xs text-muted-foreground">Tax</label>
             <input className="w-full text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none" value={editTax} onChange={(e) => setEditTax(e.target.value)} type="number" step="0.01" />
           </div>
           <div className="flex-1">
-            <label className="text-xs text-muted-foreground">tip</label>
+            <label className="text-xs text-muted-foreground">Tip</label>
             <input className="w-full text-sm font-mono-data bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none" value={editTip} onChange={(e) => setEditTip(e.target.value)} type="number" step="0.01" />
           </div>
         </div>
@@ -147,7 +147,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
           <ReceiptIcon className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-display text-sm text-foreground">receipt scanned</p>
+          <p className="font-display text-sm text-foreground">Receipt Scanned</p>
           <p className="text-xs text-muted-foreground font-mono-data">
             {receipt.items.length} items · {currency}{subtotal.toFixed(2)}
           </p>
@@ -163,7 +163,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
             </button>
             {confirmDelete ? (
               <div className="flex gap-1 items-center">
-                <span className="text-xs text-destructive">delete?</span>
+                <span className="text-xs text-destructive">Delete?</span>
                 <button
                   onClick={() => { onDeleteReceipt?.(receipt.id, messageId || ''); setConfirmDelete(false); }}
                   className="h-7 w-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
@@ -228,7 +228,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
         >
           <input
             className="flex-1 text-sm bg-muted rounded-lg px-2 py-1.5 border-1.5 border-foreground/20 focus:border-foreground outline-none"
-            placeholder="item name"
+            placeholder="Item Name"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleConfirmAdd()}
@@ -261,14 +261,14 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
           onClick={() => setAddingItem(true)}
           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-2 px-2 py-1 transition-colors"
         >
-          <Plus className="h-3 w-3" /> add item
+          <Plus className="h-3 w-3" /> Add Item
         </button>
       ) : null}
 
       {/* Paid by */}
       <div className="border-t border-foreground/10 my-3" />
       <div className="flex items-center gap-2 px-2 mb-2">
-        <span className="text-xs text-muted-foreground">paid by</span>
+        <span className="text-xs text-muted-foreground">Paid By</span>
         <div className="flex gap-1 overflow-x-auto no-scrollbar max-w-full">
           {members.map((m) => {
             const isPayer = receipt.paidBy === m.id;
@@ -295,11 +295,11 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
       {/* Tax & Tip */}
       <div className="space-y-1 px-2">
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>tax</span>
+          <span>Tax</span>
           <span className="font-mono-data">{currency}{receipt.tax.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>tip</span>
+          <span>Tip</span>
           <span className="font-mono-data">{currency}{receipt.tip.toFixed(2)}</span>
         </div>
       </div>
@@ -307,7 +307,7 @@ export function ReceiptCard({ receipt, members, currentUserId, onToggleAssignmen
       {/* My Total */}
       <div className="mt-3 bg-primary/10 rounded-xl p-3 border-1.5 border-primary/30">
         <div className="flex justify-between items-baseline">
-          <span className="text-sm text-foreground font-medium">your total</span>
+          <span className="text-sm text-foreground font-medium">Your Total</span>
           <span className="font-display text-xl text-primary">
             {currency}{myTotal.toFixed(2)}
           </span>

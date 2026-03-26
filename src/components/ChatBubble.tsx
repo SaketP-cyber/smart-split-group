@@ -20,7 +20,7 @@ export function ChatBubble({ content, sender, isOwn, timestamp }: ChatBubbleProp
       {!isOwn && <AvatarBubble member={sender} size="sm" isActive />}
       <div>
         {!isOwn && (
-          <p className="text-[10px] text-muted-foreground mb-0.5 px-1">{sender.name.toLowerCase()}</p>
+          <p className="text-[10px] text-muted-foreground mb-0.5 px-1">{sender.name}</p>
         )}
         <div
           className={`

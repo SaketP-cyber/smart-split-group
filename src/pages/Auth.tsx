@@ -8,11 +8,11 @@ import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 
 const taglines = [
-  { text: "stop doing math after dinner", icon: Receipt },
-  { text: "snap. split. done.", icon: Camera },
-  { text: "your friends owe you ₹427", icon: Zap },
-  { text: "no more awkward money talks", icon: Users },
-  { text: "AI reads receipts so you don't", icon: Receipt },
+  { text: "Stop Doing Math After Dinner", icon: Receipt },
+  { text: "Snap. Split. Done.", icon: Camera },
+  { text: "Your Friends Owe You ₹427", icon: Zap },
+  { text: "No More Awkward Money Talks", icon: Users },
+  { text: "AI Reads Receipts So You Don't", icon: Receipt },
 ];
 
 export default function Auth() {
@@ -91,9 +91,9 @@ export default function Auth() {
           </motion.div>
 
           <div>
-            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] mb-1">smart split</p>
+            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] mb-1">Smart Split</p>
             <h1 className="font-display text-3xl text-foreground">
-              {isSignUp ? 'join the crew' : 'welcome back'}
+              {isSignUp ? 'Join The Crew' : 'Welcome Back'}
             </h1>
           </div>
 
@@ -133,7 +133,7 @@ export default function Auth() {
               />
             ))}
           </div>
-          <span className="text-xs text-muted-foreground">splitting bills together</span>
+          <span className="text-xs text-muted-foreground">Splitting Bills Together</span>
         </motion.div>
 
         {/* Google button */}
@@ -153,7 +153,7 @@ export default function Auth() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
           )}
-          continue with google
+          Continue With Google
         </Button>
 
         {/* Divider */}
@@ -169,7 +169,7 @@ export default function Auth() {
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="email"
-              placeholder="email"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 h-12 rounded-2xl bg-muted border-0 text-sm"
@@ -180,7 +180,7 @@ export default function Auth() {
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type={showPassword ? 'text' : 'password'}
-              placeholder="password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-10 pr-10 h-12 rounded-2xl bg-muted border-0 text-sm"
@@ -200,18 +200,18 @@ export default function Auth() {
             disabled={loading}
             className="w-full h-12 rounded-2xl bg-foreground text-background font-display text-sm hover:bg-foreground/90 shadow-card-sm"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignUp ? 'sign up' : 'sign in'}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignUp ? 'Sign Up' : 'Sign In'}
           </Button>
         </form>
 
         {/* Toggle */}
         <p className="text-center text-sm text-muted-foreground">
-          {isSignUp ? 'already have an account?' : "don't have an account?"}{' '}
+          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-primary font-medium hover:underline"
           >
-            {isSignUp ? 'sign in' : 'sign up'}
+            {isSignUp ? 'Sign In' : 'Sign Up'}
           </button>
         </p>
       </motion.div>
