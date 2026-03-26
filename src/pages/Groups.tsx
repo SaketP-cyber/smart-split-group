@@ -81,12 +81,12 @@ export default function Groups() {
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">smart split</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Smart Split</p>
             <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors">
               <LogOut className="h-4 w-4" />
             </button>
           </div>
-          <h1 className="font-display text-3xl text-foreground">your groups</h1>
+          <h1 className="font-display text-3xl text-foreground">Your Groups</h1>
         </motion.div>
       </div>
 
@@ -103,13 +103,13 @@ export default function Groups() {
             >
               <div className="bg-card border-1.5 border-foreground rounded-2xl p-4 shadow-card-sm space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-foreground">new group</p>
+                  <p className="text-sm font-medium text-foreground">New Group</p>
                   <button onClick={() => setShowCreate(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
                 <Input
-                  placeholder="group name..."
+                  placeholder="Group Name..."
                   value={newGroupName}
                   onChange={(e) => setNewGroupName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateGroup()}
@@ -121,7 +121,7 @@ export default function Groups() {
                   disabled={!newGroupName.trim()}
                   className="w-full bg-foreground text-background rounded-xl font-display text-sm hover:bg-foreground/90"
                 >
-                  create group
+                  Create Group
                 </Button>
               </div>
             </motion.div>
@@ -138,7 +138,7 @@ export default function Groups() {
               <div className="h-9 w-9 rounded-xl bg-primary/20 flex items-center justify-center">
                 <Plus className="h-4.5 w-4.5" />
               </div>
-              <span className="text-sm font-medium">create new group</span>
+              <span className="text-sm font-medium">Create New Group</span>
             </motion.button>
           )}
         </AnimatePresence>
@@ -152,7 +152,7 @@ export default function Groups() {
           </div>
         ) : groups.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
-            no groups yet — create one above!
+            No Groups Yet — Create One Above!
           </div>
         ) : (
           groups.map((group, i) => (

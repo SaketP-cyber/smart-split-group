@@ -38,7 +38,7 @@ export function ScanningCard() {
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-3">scanning receipt...</p>
+      <p className="text-xs text-muted-foreground text-center mt-3">Scanning Receipt...</p>
     </motion.div>
   );
 }
