@@ -441,7 +441,7 @@ export default function GroupChat() {
           tax: data.tax || 0,
           tip: data.tip || 0,
           total: data.total || 0,
-          currency: data.currency || '$',
+          currency: '₹',
           created_by: CURRENT_USER,
           paid_by: CURRENT_USER,
         } as any)
@@ -455,7 +455,7 @@ export default function GroupChat() {
         tax: data.tax || 0,
         tip: data.tip || 0,
         total: data.total || 0,
-        currency: data.currency || '$',
+        currency: '₹',
         createdBy: CURRENT_USER,
         paidBy: CURRENT_USER,
         createdAt: new Date(receiptRow.created_at),
@@ -507,7 +507,7 @@ export default function GroupChat() {
           tax,
           tip,
           total,
-          currency: '$',
+          currency: '₹',
           created_by: CURRENT_USER,
           paid_by: payerId,
         } as any)
@@ -521,7 +521,7 @@ export default function GroupChat() {
         tax,
         tip,
         total,
-        currency: '$',
+        currency: '₹',
         createdBy: CURRENT_USER,
         paidBy: payerId,
         createdAt: new Date(receiptRow.created_at),
@@ -581,7 +581,7 @@ export default function GroupChat() {
         members={members}
         onOpenLedger={() => setLedgerOpen(true)}
       />
-      <BalanceBar balance={netBalance} currency="$" />
+      <BalanceBar balance={netBalance} currency="₹" />
 
       {/* Chat feed */}
       <div ref={feedRef} className="flex-1 overflow-y-auto px-3 py-4 space-y-3">
@@ -656,7 +656,7 @@ export default function GroupChat() {
         onClose={() => setLedgerOpen(false)}
         debts={debts}
         members={members}
-        currency="$"
+        currency="₹"
         onSettleUp={handleSettleUp}
       />
     </div>
