@@ -19,7 +19,7 @@ export const MOCK_RECEIPT: Receipt = {
   tax: 7.75,
   tip: 12.00,
   total: 97.25,
-  currency: '$',
+  currency: '₹',
   createdBy: 'me',
   paidBy: 'me',
   createdAt: new Date(Date.now() - 1000 * 60 * 15),
