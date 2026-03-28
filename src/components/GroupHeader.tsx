@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, BookOpen, Share2, Check, Link } from 'lucide-react';
+import { ChevronLeft, BookOpen, Share2, Trash2, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Member } from '@/lib/types';
 import { AvatarBubble } from './AvatarBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface GroupHeaderProps {
   groupName: string;
@@ -17,11 +33,12 @@ interface GroupHeaderProps {
 export function GroupHeader({ groupName, groupId, members, onOpenLedger }: GroupHeaderProps) {
   const navigate = useNavigate();
   const [sharing, setSharing] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const handleShare = async () => {
     setSharing(true);
     try {
-      // Check for existing invite
       const { data: existing } = await supabase
         .from('group_invites')
         .select('token')
@@ -57,40 +74,92 @@ export function GroupHeader({ groupName, groupId, members, onOpenLedger }: Group
     setSharing(false);
   };
 
+  const handleDeleteGroup = async () => {
+    setDeleting(true);
+    try {
+      const { error } = await supabase.rpc('delete_group_cascade', { _group_id: groupId });
+      if (error) throw error;
+      toast.success('Group deleted');
+      navigate('/');
+    } catch (e: any) {
+      toast.error('Failed to delete group');
+      console.error(e);
+    }
+    setDeleting(false);
+  };
+
   return (
-    <div className="bg-card border-b-1.5 border-foreground px-3 py-3 flex items-center gap-2 safe-area-pt">
-      <button className="p-1 -ml-1" onClick={() => navigate('/')}>
-        <ChevronLeft className="h-5 w-5 text-foreground" />
-      </button>
-      <div className="flex-1 min-w-0">
-        <h1 className="font-display text-base leading-tight truncate">{groupName}</h1>
-        <div className="flex items-center gap-1 mt-0.5 overflow-x-auto no-scrollbar max-w-full">
-          <div className="flex items-center gap-1 shrink-0">
-            {members.slice(0, 6).map((m) => (
-              <AvatarBubble key={m.id} member={m} size="sm" isActive />
-            ))}
-            {members.length > 6 && (
-              <span className="text-[10px] text-muted-foreground shrink-0">+{members.length - 6}</span>
-            )}
+    <>
+      <div className="bg-card border-b-1.5 border-foreground px-3 py-3 flex items-center gap-2 safe-area-pt">
+        <button className="p-1 -ml-1" onClick={() => navigate('/')}>
+          <ChevronLeft className="h-5 w-5 text-foreground" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-base leading-tight truncate">{groupName}</h1>
+          <div className="flex items-center gap-1 mt-0.5 overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex items-center gap-1 shrink-0">
+              {members.slice(0, 6).map((m) => (
+                <AvatarBubble key={m.id} member={m} size="sm" isActive />
+              ))}
+              {members.length > 6 && (
+                <span className="text-[10px] text-muted-foreground shrink-0">+{members.length - 6}</span>
+              )}
+            </div>
+            <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{members.length} Members</span>
           </div>
-          <span className="text-[10px] text-muted-foreground ml-1 shrink-0">{members.length} Members</span>
         </div>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onOpenLedger}
+          className="h-9 w-9 rounded-full bg-muted flex items-center justify-center"
+        >
+          <BookOpen className="h-4 w-4" />
+        </motion.button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="h-9 w-9 rounded-full bg-muted flex items-center justify-center"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </motion.button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[160px]">
+            <DropdownMenuItem onClick={handleShare} disabled={sharing}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Invite
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDeleteOpen(true)}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Group
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        onClick={handleShare}
-        disabled={sharing}
-        className="h-9 w-9 rounded-full bg-muted flex items-center justify-center"
-      >
-        <Share2 className="h-4 w-4" />
-      </motion.button>
-      <motion.button
-        whileTap={{ scale: 0.95 }}
-        onClick={onOpenLedger}
-        className="h-9 w-9 rounded-full bg-muted flex items-center justify-center"
-      >
-        <BookOpen className="h-4 w-4" />
-      </motion.button>
-    </div>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{groupName}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the group, all messages, receipts, and settlements. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteGroup}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
