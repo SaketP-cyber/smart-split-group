@@ -1,11 +1,27 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, BookOpen, Share2, Check, Link } from 'lucide-react';
+import { ChevronLeft, BookOpen, Share2, Trash2, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Member } from '@/lib/types';
 import { AvatarBubble } from './AvatarBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface GroupHeaderProps {
   groupName: string;
