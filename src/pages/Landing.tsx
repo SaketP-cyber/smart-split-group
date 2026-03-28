@@ -4,11 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 
-const stats = [
-  { value: '10K+', label: 'Bills Split' },
-  { value: '₹2Cr+', label: 'Money Tracked' },
-  { value: '4.9★', label: 'User Rating' },
-];
 
 const features = [
   {
@@ -126,15 +121,6 @@ export default function Landing() {
             </Button>
           </motion.div>
 
-          {/* Stats */}
-          <motion.div variants={fadeUp} className="flex items-center justify-center gap-8 mt-12">
-            {stats.map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p className="text-2xl font-black text-foreground font-mono">{value}</p>
-                <p className="text-xs text-muted-foreground font-medium">{label}</p>
-              </div>
-            ))}
-          </motion.div>
         </motion.div>
 
         {/* Scroll indicator */}
@@ -213,38 +199,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Social Proof / Testimonial */}
-      <section className="py-24 px-5">
-        <div className="max-w-3xl mx-auto text-center">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-100px' }}
-            variants={stagger}
-          >
-            <motion.div variants={fadeUp} className="flex justify-center mb-6">
-              <div className="flex -space-x-3">
-                {['bg-primary', 'bg-destructive', 'bg-ring', 'bg-muted-foreground', 'bg-primary/70'].map((c, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1, type: 'spring', stiffness: 300 }}
-                    className={`h-10 w-10 rounded-full ${c} border-3 border-background`}
-                  />
-                ))}
-              </div>
-            </motion.div>
-            <motion.blockquote variants={fadeUp} className="text-2xl sm:text-3xl font-bold leading-snug mb-4">
-              "We Used To Fight Over Bills After Every Trip. Now It Takes 30 Seconds."
-            </motion.blockquote>
-            <motion.p variants={fadeUp} className="text-muted-foreground font-medium">
-              — A Group Of 6 Friends Who Traveled Goa Together
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Final CTA */}
       <section className="py-24 px-5">
@@ -259,7 +213,7 @@ export default function Landing() {
             <Smartphone className="h-10 w-10 mx-auto mb-4 text-primary" />
             <h2 className="text-3xl sm:text-4xl font-black mb-3">Ready To Split?</h2>
             <p className="text-background/70 mb-8 text-lg">
-              Join Thousands Who Stopped Doing Bill Math. It's Free.
+              Stop Doing Bill Math. It's Free.
             </p>
             <Button
               onClick={goToAuth}
