@@ -259,6 +259,7 @@ export type Database = {
         Args: { _members: Json; _name: string }
         Returns: string
       }
+      delete_group_cascade: { Args: { _group_id: string }; Returns: undefined }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
