@@ -213,7 +213,7 @@ export default function Landing() {
             <Smartphone className="h-10 w-10 mx-auto mb-4 text-primary" />
             <h2 className="text-3xl sm:text-4xl font-black mb-3">Ready To Split?</h2>
             <p className="text-background/70 mb-8 text-lg">
-              Join Thousands Who Stopped Doing Bill Math. It's Free.
+              Stop Doing Bill Math. It's Free.
             </p>
             <Button
               onClick={goToAuth}
